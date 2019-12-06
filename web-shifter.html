@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang='en'>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <title>Warmup</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+            html {
+                font-size: 10px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            body {
+                color: #300;
+            }
+        </style>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const canvas = document.querySelector('canvas');
+                const ctx = canvas.getContext('2d');
+                var canWidth = canvas.width = window.outerWidth;
+                var canHeight = canvas.height = window.outerHeight;
+                var canDiag = (canWidth + canHeight) / 2;
+
+                var axis = 'y';
+
+                var BGColor = {
+                    r:0, g: 0, b:0,
+
+                    getString: function() {
+                        return 'rgb(' + this.r + ',' 
+                            + this.g + ',' + this.b + ')';
+                    },
+
+                    changeClr: function(hue, value) {
+                        switch(hue) {
+                            case 'all': this.r = this.g = this.b = value; break;
+                            case 'r': this.r = value; break;
+                            case 'g': this.g = value; break;
+                            case 'b': this.b = value; break;
+                            default: break;
+                        }
+                    }
+                }
+
+                function Player(x, y, width, height, color) {
+                    this.x = x; this.y = y; 
+                    this.width = width; this.height = height;
+                    this.color = color;
+                }
+
+                onmousemove = function() {
+                    player.x = event.clientX;
+                    player.y = event.clientY;
+                    shiftClr(player, BGColor, 'y', 'g', false);
+                    shiftClr(player, BGColor, 'x', 'b', true);
+                }
+
+                /*  
+                    shiftClr() changes the color values of a given subject
+                    based on the position of a given object
+
+                    Subject MUST have x/y properties, 
+                    and object MUST have r/g/b properties
+                */
+                function shiftClr(subject, object, axis, hue, reversed) {
+                    // get new color value based on object position and axis
+                    var value;
+                    switch(axis) {
+                        case 'x': 
+                            // If reversed, the given hue brightness is affected inversly
+                            if(reversed) {
+                                value = 255 - (255*(subject.x/canWidth));
+                            } else {
+                                value = 255 * (subject.x/canWidth);
+                            }
+                            break;
+                        
+                        case 'y':
+                            if(reversed) {
+                                value = 255 - (255*(subject.y/canHeight));
+                            } else {
+                                value = 255 * (subject.y/canHeight);
+                            }
+                            break;
+                        
+                        case 'xy':
+                            if(reversed) {
+                                value = 255 - (255*((subject.x+subject.y)/2) 
+                                    / canDiag);
+                            } else {
+                                value = 255 * ((subject.x+subject.y)/2)
+                                    / canDiag;
+                                console.log(value);
+                            }
+                            break;
+                        
+                        default: value = 0; 
+                            break;
+                    }
+                    // apply color change to target
+                    switch(hue) {
+                        case 'all': object.r = object.g = object.b = value; break;
+                            case 'r': object.r = value; break;
+                            case 'g': object.g = value; break;
+                            case 'b': object.b = value; break;
+                            default: break;
+                    }
+                }
+
+                function update() {
+                    // draw background
+                    ctx.beginPath();
+                    ctx.fillStyle = BGColor.getString();
+                    ctx.fillRect(0, 0, canWidth, canHeight);
+
+                    // draw player
+                    ctx.beginPath();
+                    ctx.fillStyle = player.color;
+                    ctx.fillRect(player.x, player.y, 
+                        player.width, player.height);
+                }
+
+                player = new Player(100, 100, 32, 32, '#faa');
+
+                // start loop
+                setInterval(update, 10);
+            });
+        </script>
+    </head>
+    <body>
+        <canvas>
+            <p>Failed to load canvas.</p>
+        </canvas>
+    </body>
+</html>
