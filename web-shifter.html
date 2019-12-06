@@ -17,6 +17,12 @@
             body {
                 color: #300;
             }
+
+            canvas {
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }
         </style>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
@@ -26,7 +32,13 @@
                 var canHeight = canvas.height = window.outerHeight;
                 var canDiag = (canWidth + canHeight) / 2;
 
-                var axis = 'y';
+                var leftPressed = false;
+                var rightPressed = false;
+                var upPressed = false;
+                var downPressed = false;
+
+                document.addEventListener('keydown', keyDownHandler, false);
+                document.addEventListener('keyup', keyUpHandler, false);
 
                 var BGColor = {
                     r:0, g: 0, b:0,
@@ -47,17 +59,70 @@
                     }
                 }
 
-                function Player(x, y, width, height, color) {
+                function Player(x, y, width, height, speed, color) {
                     this.x = x; this.y = y; 
                     this.width = width; this.height = height;
                     this.color = color;
+
+                    this.update = function() {
+                        this.x += (rightPressed - leftPressed) * speed;
+                        this.y += (downPressed - upPressed) * speed;
+
+                        // check screen bounds
+                        if(this.x < 0) {
+                            this.x = 0
+                        } else if(this.x > canWidth-this.width) {
+                            this.x = canWidth - this.width;
+                        }
+                        if(this.y < 0) {
+                            this.y = 0;
+                        } else if(this.y > canHeight-this.height) {
+                            this.y = canHeight - this.height;
+                        }
+                    }
                 }
 
                 onmousemove = function() {
                     player.x = event.clientX;
                     player.y = event.clientY;
-                    shiftClr(player, BGColor, 'y', 'g', false);
-                    shiftClr(player, BGColor, 'x', 'b', true);
+                }
+
+                function keyDownHandler(event) {
+                    switch(event.key) {
+                        case 'ArrowRight' || 'right':
+                            rightPressed = true;
+                            break;
+                        case 'ArrowLeft' || 'left':
+                            leftPressed = true;
+                            break;
+                        case 'ArrowDown' || 'down':
+                            downPressed = true;
+                            break;
+                        case 'ArrowUp' || 'up':
+                            upPressed = true;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                function keyUpHandler(event) {
+                    switch(event.key) {
+                        case 'ArrowRight' || 'right':
+                            rightPressed = false;
+                            break;
+                        case 'ArrowLeft' || 'left':
+                            leftPressed = false;
+                            break;
+                        case 'ArrowDown' || 'down':
+                            downPressed = false;
+                            break;
+                        case 'ArrowUp' || 'up':
+                            upPressed = false;
+                            break;
+                        default:
+                            break;
+                    }
                 }
 
                 /*  
@@ -113,6 +178,9 @@
                 }
 
                 function update() {
+                    shiftClr(player, BGColor, 'y', 'g', false);
+                    shiftClr(player, BGColor, 'x', 'b', true);
+                    player.update();
                     // draw background
                     ctx.beginPath();
                     ctx.fillStyle = BGColor.getString();
@@ -125,7 +193,7 @@
                         player.width, player.height);
                 }
 
-                player = new Player(100, 100, 32, 32, '#faa');
+                player = new Player(100, 100, 32, 32, 10, '#faa');
 
                 // start loop
                 setInterval(update, 10);
