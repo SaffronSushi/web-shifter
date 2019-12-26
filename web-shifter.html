@@ -16,21 +16,27 @@
 
             body {
                 color: #300;
+                overflow: hidden;
             }
 
             canvas {
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
+                width: 512px;
+                height: 512px;
+                display: block;
+                margin: 0 auto;
+                margin-top: 20px;
             }
         </style>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const canvas = document.querySelector('canvas');
                 const ctx = canvas.getContext('2d');
-                var canWidth = canvas.width = window.outerWidth;
-                var canHeight = canvas.height = window.outerHeight;
+                var canWidth = canvas.width; // = window.outerWidth;
+                var canHeight = canvas.height; // = window.outerHeight;
+                // get diagonal width of canvas
                 var canDiag = (canWidth + canHeight) / 2;
+                // set tile size
+                var TS = canHeight / 16;
 
                 var leftPressed = false;
                 var rightPressed = false;
@@ -64,7 +70,14 @@
                     this.width = width; this.height = height;
                     this.color = color;
 
+                    this.draw = function() {
+                        ctx.beginPath();
+                        ctx.fillStyle = this.color;
+                        ctx.fillRect(this.x, this.y, this.width, this.height);
+                    }
+
                     this.update = function() {
+                        // move based on key flags
                         this.x += (rightPressed - leftPressed) * speed;
                         this.y += (downPressed - upPressed) * speed;
 
@@ -79,6 +92,29 @@
                         } else if(this.y > canHeight-this.height) {
                             this.y = canHeight - this.height;
                         }
+                    }
+                }
+
+                function Wall(x, y, width, height, r, g, b) {
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+                    
+                    this.r = r;
+                    this.g = g;
+                    this.b = b;
+                    this.color = '#000';
+
+                    this.getString = function() {
+                        this.color = 'rgb(' + this.r + ',' 
+                            + this.g + ',' + this.b + ')';
+                    },
+
+                    this.draw = function() {
+                        ctx.beginPath();
+                        ctx.fillStyle = this.color;
+                        ctx.fillRect(this.x, this.y, this.width, this.height);
                     }
                 }
 
@@ -178,22 +214,24 @@
                 }
 
                 function update() {
-                    shiftClr(player, BGColor, 'y', 'g', false);
-                    shiftClr(player, BGColor, 'x', 'b', true);
+                    shiftClr(player, wall, 'x', 'all', true);
+                    shiftClr(player, BGColor, 'x', 'all', false);
                     player.update();
                     // draw background
                     ctx.beginPath();
                     ctx.fillStyle = BGColor.getString();
                     ctx.fillRect(0, 0, canWidth, canHeight);
 
+                    // draw walls
+                    wall.draw();
+
                     // draw player
-                    ctx.beginPath();
-                    ctx.fillStyle = player.color;
-                    ctx.fillRect(player.x, player.y, 
-                        player.width, player.height);
+                    player.draw();
                 }
 
-                player = new Player(100, 100, 32, 32, 10, '#faa');
+                var player = new Player(0, 0, TS, TS, 3, '#faa');
+                //var walls = [];
+                var wall = new Wall(TS*3, TS*3, TS, TS, '#000');
 
                 // start loop
                 setInterval(update, 10);
@@ -201,7 +239,7 @@
         </script>
     </head>
     <body>
-        <canvas>
+        <canvas width='512' height='512'>
             <p>Failed to load canvas.</p>
         </canvas>
     </body>
