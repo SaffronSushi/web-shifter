@@ -1,3 +1,7 @@
+<!--
+    ADD BUTTONS TO SCREEN TO CONTROL SHIFT PROPERTIES
+-->
+
 <!DOCTYPE html>
 <html lang='en'>
     <head>
@@ -66,9 +70,14 @@
                 }
 
                 function Player(x, y, width, height, speed, color) {
-                    this.x = x; this.y = y; 
+                    this.x = x; 
+                    this.y = y; 
                     this.width = width; this.height = height;
                     this.color = color;
+
+                    this.speed = speed;
+                    this.dx = 0;
+                    this.dy = 0;
 
                     this.draw = function() {
                         ctx.beginPath();
@@ -77,9 +86,50 @@
                     }
 
                     this.update = function() {
-                        // move based on key flags
+                        // for strange reasons, collision seems to only work if
+                        //    x/y coordinates are checked for collision independantly
+
+                        // apply x velocity and check horizontal collisions
                         this.x += (rightPressed - leftPressed) * speed;
+                        // check wall collisions
+                        if (this.x < wall.x + wall.width &&
+                            this.x + this.width > wall.x &&
+                            this.y < wall.y + wall.height &&
+                            this.y + this.height > wall.y) {
+                            if (rightPressed) {
+                                this.x = wall.x - this.width;
+
+                                // crawl along wall if close enough to edge (move assist)
+                                if (this.y < wall.y && !upPressed) {
+                                    this.y -= 1;
+                                } else if ( this.y + this.height > wall.y + wall.height
+                                            && !downPressed) {
+                                    this.y += 1;
+                                }
+                            } else {
+                                this.x = wall.x + wall.width;
+
+                                if (this.y < wall.y && !upPressed) {
+                                    this.y -= 1;
+                                } else if ( this.y + this.height > wall.y + wall.height
+                                            && !downPressed) {
+                                    this.y += 1;
+                                }
+                            }
+                        }
+
+                        // apply y velocity and check vertical collisions
                         this.y += (downPressed - upPressed) * speed;
+                        if (this.x < wall.x + wall.width &&
+                            this.x + this.width > wall.x &&
+                            this.y < wall.y + wall.height &&
+                            this.y + this.height > wall.y) {
+                            if (downPressed) {
+                                this.y = wall.y - this.height;
+                            } else {
+                                this.y = wall.y + wall.height;
+                            }
+                        }
 
                         // check screen bounds
                         if(this.x < 0) {
@@ -214,8 +264,8 @@
                 }
 
                 function update() {
-                    shiftClr(player, wall, 'x', 'all', true);
-                    shiftClr(player, BGColor, 'x', 'all', false);
+                    shiftClr(player, BGColor, 'x', 'b', true);
+                    shiftClr(player, BGColor, 'y', 'r', false);
                     player.update();
                     // draw background
                     ctx.beginPath();
@@ -231,7 +281,7 @@
 
                 var player = new Player(0, 0, TS, TS, 3, '#faa');
                 //var walls = [];
-                var wall = new Wall(TS*3, TS*3, TS, TS, '#000');
+                var wall = new Wall(TS*3, TS*3, TS, TS*5, '#000');
 
                 // start loop
                 setInterval(update, 10);
