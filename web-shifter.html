@@ -9,6 +9,11 @@
     - DONT USE SPACES WITH COLORS   not this: 'rgb(200, 200, 200)', this: 'rgb(200,200,200)'
     - choose between having clrChange method in all objects, or just having the colorShift method change properties
         and having the color string continually update in the object
+    - dynamic property to walls
+    - Key handler doesn't use OR statements with case args PS: add w/a/s/d
+    - Only allow game control when canvas is in focus
+    - include starting color values of player, background, and respective shift effects in JSON 
+        (hopefully, walls will have built in using flags)
 -->
 
 <!DOCTYPE html>
@@ -59,6 +64,8 @@
                 // set tile size
                 var TS = canHeight / 16;
 
+                // EVENT HANDLING
+
                 var leftPressed = false;
                 var rightPressed = false;
                 var upPressed = false;
@@ -67,220 +74,14 @@
                 document.addEventListener('keydown', keyDownHandler, false);
                 document.addEventListener('keyup', keyUpHandler, false);
 
-                var BGColor = {
-                    r:0, g: 0, b:0,
+                // Uncomment to use move player with mouse (negates wall collision)
 
-                    getString: function() {
-                        return 'rgb(' + this.r + ',' 
-                            + this.g + ',' + this.b + ')';
-                    },
-
-                    changeClr: function(hue, value) {
-                        switch(hue) {
-                            case 'all': this.r = this.g = this.b = value; break;
-                            case 'r': this.r = value; break;
-                            case 'g': this.g = value; break;
-                            case 'b': this.b = value; break;
-                            default: break;
-                        }
-                    }
-                }
-
-                function Player(x, y, width, height, speed, color) {
-                    this.x = x; 
-                    this.y = y; 
-                    this.width = width; this.height = height;
-
-                    this.speed = speed;
-                    this.slideSpeed = 1; // speed during move assist
-
-                    // color must be rbga!
-                    this.color = color;
-                    this.r = 0;
-                    this.g = 0;
-                    this.b = 0;
-
-                    // break color string into individual hue properties
-                    this.breakString = function() {
-                        var tempString = this.color.replace('rgb(', '');
-                        tempString = tempString.replace(')', '');
-                        tempString = tempString.split(',');
-                        this.r = tempString[0];
-                        this.g = tempString[1];
-                        this.b = tempString[2];
-                    }
-                    // apply at the start to initialize hue properties
-                    this.breakString();
-
-                    // get usable color string of RGB properties
-                    this.getString = function() {
-                        return 'rgb(' + this.r + ',' 
-                            + this.g + ',' + this.b + ')';
-                    }
-
-                    this.changeClr =  function(hue, value) {
-                        switch(hue) {
-                            case 'all': this.r = this.g = this.b = value; break;
-                            case 'r': this.r = value; break;
-                            case 'g': this.g = value; break;
-                            case 'b': this.b = value; break;
-                            default: break;
-                        }
-                        // apply changes to main color string
-                        this.color = this.getString();
-                    }
-
-                    this.draw = function() {
-                        // apply any color changes
-                        this.color = this.getString();
-                        // draw rect
-                        ctx.beginPath();
-                        ctx.fillStyle = this.color;
-                        ctx.fillRect(this.x, this.y, this.width, this.height);
-                    }
-
-                    this.update = function() {
-                        // for strange reasons, collision seems to only work if
-                        //    x/y coordinates are checked for collision independantly
-
-                        // apply x velocity and check horizontal collisions
-                        this.x += (rightPressed - leftPressed) * speed;
-                        // check wall collisions
-                        if (walls) {
-                            for (var w=0; w<walls.length; w++) {
-                                var wall = walls[w];
-                                if (this.x < wall.x + wall.width &&
-                                    this.x + this.width > wall.x &&
-                                    this.y < wall.y + wall.height &&
-                                    this.y + this.height > wall.y) {
-                                    if (rightPressed) {
-                                        this.x = wall.x - this.width;
-
-                                        // crawl along wall if close enough to edge / touching corner of wall (move assist)
-                                        // make sure that RIGHT is the only key being pressed
-                                        if (this.y < wall.y && !upPressed &&
-                                            !upPressed && !downPressed) {
-                                            this.y -= this.slideSpeed;
-                                        } else if ( this.y + this.height > wall.y + wall.height
-                                                    && !downPressed) {
-                                            this.y += this.slideSpeed;
-                                        }
-                                    } else if (leftPressed) {
-                                        this.x = wall.x + wall.width;
-
-                                        if (this.y < wall.y && !rightPressed &&
-                                            !upPressed && !downPressed) {
-                                            this.y -= this.slideSpeed;
-                                        } else if ( this.y + this.height > wall.y + wall.height
-                                                    && !downPressed) {
-                                            this.y += this.slideSpeed;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // apply y velocity and check vertical collisions
-                        // *only seems to work if collision is checked again
-                        this.y += (downPressed - upPressed) * speed;
-                        if (walls) {
-                            for (var w=0; w<walls.length; w++) {
-                                var wall = walls[w];
-                                if (this.x < wall.x + wall.width &&
-                                    this.x + this.width > wall.x &&
-                                    this.y < wall.y + wall.height &&
-                                    this.y + this.height > wall.y) {
-                                    if (downPressed) {
-                                        this.y = wall.y - this.height;
-                                        // check for move assist when pushing down on CORNER of wall
-                                        // make sure DOWN is the only key being pressed
-                                        if (this.x < wall.x && !upPressed &&
-                                            !leftPressed && !rightPressed) {
-                                            this.x -= this.slideSpeed;
-                                        } else if (this.x+this.width > wall.x+wall.width) {
-                                            this.x += this.slideSpeed;
-                                        }
-                                    } else if (upPressed) {
-                                        this.y = wall.y + wall.height;
-                                        // check for move assist when pushing up
-                                        if (this.x < wall.x && !downPressed &&
-                                            !leftPressed && !rightPressed) {
-                                            this.x -= this.slideSpeed;
-                                        } else if (this.x+this.width > wall.x+wall.width) {
-                                            this.x += this.slideSpeed;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // check screen bounds
-                        if(this.x < 0) {
-                            this.x = 0
-                        } else if(this.x > canWidth-this.width) {
-                            this.x = canWidth - this.width;
-                        }
-                        if(this.y < 0) {
-                            this.y = 0;
-                        } else if(this.y > canHeight-this.height) {
-                            this.y = canHeight - this.height;
-                        }
-                    }
-                }
-
-                function Wall(x, y, width, height, color) {
-                    this.x = x;
-                    this.y = y;
-                    this.width = width;
-                    this.height = height;
-                    
-                    this.color = color;
-                    this.r = 0;
-                    this.g = 0;
-                    this.b = 0;
-
-                    // break color string into individual hue properties
-                    this.breakString = function() {
-                        var tempString = this.color.replace('rgb(', '');
-                        tempString = tempString.replace(')', '');
-                        tempString = tempString.split(',');
-                        this.r = tempString[0];
-                        this.g = tempString[1];
-                        this.b = tempString[2];
-                    }
-                    // apply at the start to initialize hue properties
-                    this.breakString();
-
-                    this.getString = function() {
-                        this.color = 'rgb(' + this.r + ',' 
-                            + this.g + ',' + this.b + ')';
-                        //console.log(this.color);
-                    }
-
-                    this.changeClr =  function(hue, value) {
-                        switch(hue) {
-                            case 'all': this.r = this.g = this.b = value; break;
-                            case 'r': this.r = value; break;
-                            case 'g': this.g = value; break;
-                            case 'b': this.b = value; break;
-                            default: break;
-                        }
-                        // apply changes to main color string
-                        this.color = this.getString();
-                        //console.log(this.color);
-                    }
-
-                    this.draw = function() {
-                        ctx.beginPath();
-                        ctx.fillStyle = this.color;
-                        ctx.fillRect(this.x, this.y, this.width, this.height);
-                    }
-                }
-
+                /*
                 onmousemove = function() {
                     player.x = event.clientX;
                     player.y = event.clientY;
                 }
+                */
 
                 function keyDownHandler(event) {
                     switch(event.key) {
@@ -320,67 +121,297 @@
                     }
                 }
 
-                /*  
-                    shiftClr() changes the color values of a given subject
-                    based on the position of a given object
-
-                    Subject MUST have x/y properties, 
-                    and object MUST have r/g/b properties
+                /* Shifter object changes properties of an object (ex: color) based on
+                    properties of another subject (ex: position)
                 */
-                function shiftClr(subject, object, axis, hue, reversed) {
-                    // get new color value based on object position and axis
-                    var value;
-                    switch(axis) {
-                        case 'x': 
-                            // If reversed, the given hue brightness is affected inversly
-                            if(reversed) {
-                                value = 255 - (255*(subject.x/canWidth));
-                            } else {
-                                value = 255 * (subject.x/canWidth);
-                            }
-                            break;
-                        
-                        case 'y':
-                            if(reversed) {
-                                value = 255 - (255*(subject.y/canHeight));
-                            } else {
-                                value = 255 * (subject.y/canHeight);
-                            }
-                            break;
-                        
-                        case 'xy':
-                            if(reversed) {
-                                value = 255 - (255*((subject.x+subject.y)/2) 
-                                    / canDiag);
-                            } else {
-                                value = 255 * ((subject.x+subject.y)/2)
-                                    / canDiag;
-                            }
-                            break;
-                        
-                        default: value = 0; 
-                            break;
-                    }
-                    // apply color change to target
-                    object.changeClr(hue, value);
-                    /*
-                    switch(hue) {
-                        case 'all': object.r = object.g = object.b = value; break;
-                            case 'r': object.r = value; break;
-                            case 'g': object.g = value; break;
-                            case 'b': object.b = value; break;
-                            default: break;
-                    }
+                const Shifter = {
+                    /*  
+                      shiftObjClr() changes the color values of a given subject
+                    based on the position of a given object, in the range of the canvas size 
+                    (might change later w/ 'space' arg for smaller self contained areas of effect)
+
+                    Subject AND object MUST have:
+                     - x/y, properties
+                     - A Color object with r/g/b/a/string properties
+                     - setClrString() method
+
+                    axis args:
+                     - 'x': horizontal
+                     - 'y': vertical
+                     - 'xy': diagonal
+
+                    hue args include 'r', 'g', 'b', 'a', 'all'
+                    NOTE: 'all' only affects rgb, NOT transparency
+
+                      reversed arg starts the effect slider at the other end of the arena,
+                    ex:    hue='r', axis='x', reversed=false -> moving from left to right increases hue, starting at min
+                            reversed=true -> moving from left to right decreases hue, starting at at max
                     */
+                    shiftObjClr: function(subject, object, axis, hue, reversed) {
+                        // Get new color value based on object position and axis
+                        var value;
+                        switch(axis) {
+                            case 'x': 
+                                // If reversed, the given hue brightness is affected inversly
+                                if(reversed) {
+                                    value = 255 - (255*(subject.x/canWidth));
+                                } else {
+                                    value = 255 * (subject.x/canWidth);
+                                }
+                                break;
+                            
+                            case 'y':
+                                if(reversed) {
+                                    value = 255 - (255*(subject.y/canHeight));
+                                } else {
+                                    value = 255 * (subject.y/canHeight);
+                                }
+                                break;
+                            
+                            case 'xy':
+                                if(reversed) {
+                                    value = 255 - (255*((subject.x+subject.y)/2) 
+                                        / canDiag);
+                                } else {
+                                    value = 255 * ((subject.x+subject.y)/2)
+                                        / canDiag;
+                                }
+                                break;
+                            
+                            default: value = 0; 
+                                break;
+                        }
+                        // Apply color change to target
+                        switch(hue) {
+                            case 'all':
+                                object.Color.r = object.Color.g = object.Color.b = value;
+                                break;
+                            case 'r': object.Color.r = value; break;
+                            case 'g': object.Color.g = value; break;
+                            case 'b': object.Color.b = value; break;
+                            case 'a': object.Color.a = value; break;
+                            default: break;
+                        }
+                        // Reset object's Color.string property
+                        object.setClrString();
+                    }
                 }
 
+                // OBJECT CONSTRUCTORS
+
+                // color MUST be RGBA() string with NO SPACES
+                function Background(x, y, width, height, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+                    this.Color = {r:0, g:0, b:0, a:0, string:color}
+
+                    // breakClrString() returns the isolated values from RGBA string
+                    this.breakClrString = function() {
+                        var tempString = this.Color.string.replace('rgba(', '');
+                        tempString = tempString.replace(')', '');
+                        tempString = tempString.split(',');
+                        this.Color.r = Number(tempString[0]);
+                        this.Color.g = Number(tempString[1]);
+                        this.Color.b = Number(tempString[2]);
+                        this.Color.a = Number(tempString[3]);
+                    }
+                    // apply at the start to initialize hue properties
+                    this.breakClrString();
+
+                    // setClrString() assigns usable string from individual hue values
+                    //  mainly used after values have been changed
+                    this.setClrString = function() {
+                        var clrString = 'rgba(' + this.Color.r + ',' + this.Color.g + 
+                            ',' + this.Color.b + ',' + this.Color.a + ')';
+                        this.Color.string = clrString;
+                    }
+                    
+                    // draw background image to given canvas context
+                    this.draw = function(surface) {
+                        surface.beginPath();
+                        surface.fillStyle = this.Color.string;
+                        surface.fillRect(this.x, this.y, this.width, this.height);
+                    }
+                }
+
+                function Player(x, y, width, height, speed, color) {
+                    this.x = x; 
+                    this.y = y; 
+                    this.width = width; this.height = height;
+
+                    this.speed = speed;
+                    this.slideSpeed = 1; // speed during move assist
+
+                    // color must be rbga!
+                    this.Color = {r:0, g:0, b:0, a:0, string:color};
+
+                    // breakClrString() returns the isolated values from RGBA string
+                    this.breakClrString = function() {
+                        var tempString = this.Color.string.replace('rgba(', '');
+                        tempString = tempString.replace(')', '');
+                        tempString = tempString.split(',');
+                        this.Color.r = Number(tempString[0]);
+                        this.Color.g = Number(tempString[1]);
+                        this.Color.b = Number(tempString[2]);
+                        this.Color.a = Number(tempString[3]);
+                    }
+                    // Apply at the start to initialize hue properties
+                    this.breakClrString();
+
+                    // setClrString() assigns usable string from individual hue values
+                    //  mainly used after values have been changed
+                    this.setClrString = function() {
+                        var clrString = 'rgba(' + this.Color.r + ',' + this.Color.g + 
+                            ',' + this.Color.b + ',' + this.Color.a + ')';
+                        this.Color.string = clrString;
+                    }
+
+                    // Draw background image to given canvas context
+                    this.draw = function(surface) {
+                        surface.beginPath();
+                        surface.fillStyle = this.Color.string;
+                        surface.fillRect(this.x, this.y, this.width, this.height);
+                    }
+
+                    this.update = function() {
+                        // for strange reasons, collision seems to only work if
+                        //    x/y coordinates are checked for collision independantly
+
+                        // apply x velocity and check horizontal collisions
+                        this.x += (rightPressed - leftPressed) * speed;
+                        // check wall collisions
+                        if (walls) {
+                            for (var w=0; w<walls.length; w++) {
+                                var wall = walls[w];
+                                if (this.x < wall.x + wall.width &&
+                                    this.x + this.width > wall.x &&
+                                    this.y < wall.y + wall.height &&
+                                    this.y + this.height > wall.y) {
+                                    if (rightPressed) {
+                                        this.x = wall.x - this.width;
+
+                                        // Crawl along wall if close enough to edge / touching corner of wall (move assist)
+                                        // Make sure that RIGHT is the only key being pressed
+                                        if (this.y < wall.y && !upPressed &&
+                                            !upPressed && !downPressed) {
+                                            this.y -= this.slideSpeed;
+                                        } else if ( this.y + this.height > wall.y + wall.height
+                                                    && !downPressed) {
+                                            this.y += this.slideSpeed;
+                                        }
+                                    } else if (leftPressed) {
+                                        this.x = wall.x + wall.width;
+
+                                        if (this.y < wall.y && !rightPressed &&
+                                            !upPressed && !downPressed) {
+                                            this.y -= this.slideSpeed;
+                                        } else if ( this.y + this.height > wall.y + wall.height
+                                                    && !downPressed) {
+                                            this.y += this.slideSpeed;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Apply y velocity and check vertical collisions
+                        // *only seems to work if collision is checked again
+                        this.y += (downPressed - upPressed) * speed;
+                        if (walls) {
+                            for (var w=0; w<walls.length; w++) {
+                                var wall = walls[w];
+                                if (this.x < wall.x + wall.width &&
+                                    this.x + this.width > wall.x &&
+                                    this.y < wall.y + wall.height &&
+                                    this.y + this.height > wall.y) {
+                                    if (downPressed) {
+                                        this.y = wall.y - this.height;
+                                        // check for move assist when pushing down on CORNER of wall
+                                        // make sure DOWN is the only key being pressed
+                                        if (this.x < wall.x && !upPressed &&
+                                            !leftPressed && !rightPressed) {
+                                            this.x -= this.slideSpeed;
+                                        } else if (this.x+this.width > wall.x+wall.width) {
+                                            this.x += this.slideSpeed;
+                                        }
+                                    } else if (upPressed) {
+                                        this.y = wall.y + wall.height;
+                                        // check for move assist when pushing up
+                                        if (this.x < wall.x && !downPressed &&
+                                            !leftPressed && !rightPressed) {
+                                            this.x -= this.slideSpeed;
+                                        } else if (this.x+this.width > wall.x+wall.width) {
+                                            this.x += this.slideSpeed;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Stop at screen bounds
+                        if (this.x < 0) {
+                            this.x = 0
+                        } else if (this.x > canWidth-this.width) {
+                            this.x = canWidth - this.width;
+                        }
+                        if (this.y < 0) {
+                            this.y = 0;
+                        } else if (this.y > canHeight-this.height) {
+                            this.y = canHeight - this.height;
+                        }
+                    }
+                }
+
+                function Wall(x, y, width, height, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.width = width;
+                    this.height = height;
+                    this.Color = {r:0, g:0, b:0, a:0, string:color}
+
+                    // breakClrString() returns the isolated values from RGBA string
+                    this.breakClrString = function() {
+                        var tempString = this.Color.string.replace('rgba(', '');
+                        tempString = tempString.replace(')', '');
+                        tempString = tempString.split(',');
+                        this.Color.r = Number(tempString[0]);
+                        this.Color.g = Number(tempString[1]);
+                        this.Color.b = Number(tempString[2]);
+                        this.Color.a = Number(tempString[3]);
+                    }
+                    // apply at the start to initialize hue properties
+                    this.breakClrString();
+
+                    // setClrString() assigns usable string from individual hue values
+                    //  mainly used after values have been changed
+                    this.setClrString = function() {
+                        var clrString = 'rgba(' + this.Color.r + ',' + this.Color.g + 
+                            ',' + this.Color.b + ',' + this.Color.a + ')';
+                        this.Color.string = clrString;
+                    }
+                    
+                    // draw background image to given canvas context
+                    this.draw = function(surface) {
+                        surface.beginPath();
+                        surface.fillStyle = this.Color.string;
+                        surface.fillRect(this.x, this.y, this.width, this.height);
+                    }
+                }
+    
+                // MAIN GAME LOOP
+
                 function update() {
-                    shiftClr(player, BGColor, 'x', 'b', true);
-                    shiftClr(player, BGColor, 'y', 'r', false);
+                    // Clear canvas
+                    ctx.clearRect(0, 0, canWidth, canHeight);
 
-                    shiftClr(player, player, 'x', 'b', false);
-                    shiftClr(player, player, 'y', 'r', true);
+                    // Test color shift
+                    Shifter.shiftObjClr(BG, player, 'x', 'r', false);
+                    Shifter.shiftObjClr(player, BG, 'x', 'r', true);
 
+
+                    // Change header color
                     header.style.color = 'rgba(' +
                         255 * (player.x / canWidth) + ',' +
                         255 * (player.x / canWidth) + ',' +
@@ -388,31 +419,36 @@
 
                     player.update();
                     // draw background
-                    ctx.beginPath();
-                    ctx.fillStyle = BGColor.getString();
-                    ctx.fillRect(0, 0, canWidth, canHeight);
+                    BG.draw(ctx);
 
                     // draw walls
                     for (var i=0; i<walls.length; i++) {
                         // test color shift
-                        //shiftClr(player, walls[i], 'x', 'r', true);
+                        Shifter.shiftObjClr(player, walls[i], 'x', 'b', false);
 
-                        walls[i].draw();
+                        walls[i].draw(ctx);
                     }
 
                     // draw player
-                    player.draw();
+                    player.draw(ctx);
+
+                    //testBG.draw(ctx);
+
                 }
 
-                // IMPORTANT: make player slightly smaller in order to fit between gaps
-                var player = new Player(0, 0, TS*0.95, TS*0.95, 3, 'rgb(0,0,0)');
-                var walls = [];
-                walls.push(new Wall(TS*3, TS*3, TS, TS, 'rgb(0,0,0)'));
-                walls.push(new Wall(TS*3, TS*5, TS, TS, '#rgb(0,0,0)'));
-                walls.push(new Wall(TS*3, TS*6, TS, TS, '#rgb(0,0,0)'));
+                // INITIALIZE GAME ELEMENTS
 
-                walls.push(new Wall(TS*5, TS*3, TS, TS, '#rgb(0,0,0)'));
-                walls.push(new Wall(TS*6, TS*3, TS, TS, '#rgb(0,0,0)'));
+                // IMPORTANT: make player slightly smaller in order to fit between gaps
+                var player = new Player(0, 0, TS*0.95, TS*0.95, 3, 'rgba(0,0,0,1)');
+                var walls = [];
+                walls.push(new Wall(TS*3, TS*3, TS, TS, 'rgb(0,0,0,1)'));
+                walls.push(new Wall(TS*3, TS*5, TS, TS, 'rgba(0,0,0,1)'));
+                walls.push(new Wall(TS*3, TS*6, TS, TS, 'rgba(0,0,0,1)'));
+
+                walls.push(new Wall(TS*5, TS*3, TS, TS, 'rgba(0,0,0,1)'));
+                walls.push(new Wall(TS*6, TS*3, TS, TS, 'rgba(0,0,0,1)'));
+
+                var BG = new Background(0, 0, canWidth, canHeight, 'rgba(255,0,0,1)');
 
 
                 // start loop
