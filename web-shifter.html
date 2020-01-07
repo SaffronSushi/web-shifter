@@ -2,7 +2,7 @@
     - add external scripts to be loaded (Player, Walls, etc)
     - add JSON ascii lvl maps + parsing function
     - create Background object
-    - change player/wall color settings to match BG and to work with colorShift methods ???? or not??
+    - change player/wall color settings to match BG and to work with colorShift methods? (or not?)
     - change all color formats from RGB to RGBA
     - make initial color param for color simple RGBA string, not individual arguments for hues
         then add parser to break down into individual hue properties
@@ -397,6 +397,7 @@
                         surface.beginPath();
                         surface.fillStyle = this.Color.string;
                         surface.fillRect(this.x, this.y, this.width, this.height);
+
                     }
                 }
     
