@@ -1,5 +1,14 @@
 <!--
-    ADD BUTTONS TO SCREEN TO CONTROL SHIFT PROPERTIES
+    - add external scripts to be loaded (Player, Walls, etc)
+    - add JSON ascii lvl maps + parsing function
+    - create Background object
+    - change player/wall color settings to match BG and to work with colorShift methods ???? or not??
+    - change all color formats from RGB to RGBA
+    - make initial color param for color simple RGBA string, not individual arguments for hues
+        then add parser to break down into individual hue properties
+    - DONT USE SPACES WITH COLORS   not this: 'rgb(200, 200, 200)', this: 'rgb(200,200,200)'
+    - choose between having clrChange method in all objects, or just having the colorShift method change properties
+        and having the color string continually update in the object
 -->
 
 <!DOCTYPE html>
@@ -23,6 +32,13 @@
                 overflow: hidden;
             }
 
+            h1 {
+                position: absolute;
+                left: 30px;
+                font-size: 6rem;
+                color: rgba(0,0,0,0.5);
+            }
+
             canvas {
                 width: 512px;
                 height: 512px;
@@ -33,6 +49,7 @@
         </style>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                const header = document.querySelector('h1');
                 const canvas = document.querySelector('canvas');
                 const ctx = canvas.getContext('2d');
                 var canWidth = canvas.width; // = window.outerWidth;
@@ -73,13 +90,50 @@
                     this.x = x; 
                     this.y = y; 
                     this.width = width; this.height = height;
-                    this.color = color;
 
                     this.speed = speed;
-                    this.dx = 0;
-                    this.dy = 0;
+                    this.slideSpeed = 1; // speed during move assist
+
+                    // color must be rbga!
+                    this.color = color;
+                    this.r = 0;
+                    this.g = 0;
+                    this.b = 0;
+
+                    // break color string into individual hue properties
+                    this.breakString = function() {
+                        var tempString = this.color.replace('rgb(', '');
+                        tempString = tempString.replace(')', '');
+                        tempString = tempString.split(',');
+                        this.r = tempString[0];
+                        this.g = tempString[1];
+                        this.b = tempString[2];
+                    }
+                    // apply at the start to initialize hue properties
+                    this.breakString();
+
+                    // get usable color string of RGB properties
+                    this.getString = function() {
+                        return 'rgb(' + this.r + ',' 
+                            + this.g + ',' + this.b + ')';
+                    }
+
+                    this.changeClr =  function(hue, value) {
+                        switch(hue) {
+                            case 'all': this.r = this.g = this.b = value; break;
+                            case 'r': this.r = value; break;
+                            case 'g': this.g = value; break;
+                            case 'b': this.b = value; break;
+                            default: break;
+                        }
+                        // apply changes to main color string
+                        this.color = this.getString();
+                    }
 
                     this.draw = function() {
+                        // apply any color changes
+                        this.color = this.getString();
+                        // draw rect
                         ctx.beginPath();
                         ctx.fillStyle = this.color;
                         ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -92,42 +146,71 @@
                         // apply x velocity and check horizontal collisions
                         this.x += (rightPressed - leftPressed) * speed;
                         // check wall collisions
-                        if (this.x < wall.x + wall.width &&
-                            this.x + this.width > wall.x &&
-                            this.y < wall.y + wall.height &&
-                            this.y + this.height > wall.y) {
-                            if (rightPressed) {
-                                this.x = wall.x - this.width;
+                        if (walls) {
+                            for (var w=0; w<walls.length; w++) {
+                                var wall = walls[w];
+                                if (this.x < wall.x + wall.width &&
+                                    this.x + this.width > wall.x &&
+                                    this.y < wall.y + wall.height &&
+                                    this.y + this.height > wall.y) {
+                                    if (rightPressed) {
+                                        this.x = wall.x - this.width;
 
-                                // crawl along wall if close enough to edge (move assist)
-                                if (this.y < wall.y && !upPressed) {
-                                    this.y -= 1;
-                                } else if ( this.y + this.height > wall.y + wall.height
-                                            && !downPressed) {
-                                    this.y += 1;
-                                }
-                            } else {
-                                this.x = wall.x + wall.width;
+                                        // crawl along wall if close enough to edge / touching corner of wall (move assist)
+                                        // make sure that RIGHT is the only key being pressed
+                                        if (this.y < wall.y && !upPressed &&
+                                            !upPressed && !downPressed) {
+                                            this.y -= this.slideSpeed;
+                                        } else if ( this.y + this.height > wall.y + wall.height
+                                                    && !downPressed) {
+                                            this.y += this.slideSpeed;
+                                        }
+                                    } else if (leftPressed) {
+                                        this.x = wall.x + wall.width;
 
-                                if (this.y < wall.y && !upPressed) {
-                                    this.y -= 1;
-                                } else if ( this.y + this.height > wall.y + wall.height
-                                            && !downPressed) {
-                                    this.y += 1;
+                                        if (this.y < wall.y && !rightPressed &&
+                                            !upPressed && !downPressed) {
+                                            this.y -= this.slideSpeed;
+                                        } else if ( this.y + this.height > wall.y + wall.height
+                                                    && !downPressed) {
+                                            this.y += this.slideSpeed;
+                                        }
+                                    }
                                 }
                             }
                         }
 
                         // apply y velocity and check vertical collisions
+                        // *only seems to work if collision is checked again
                         this.y += (downPressed - upPressed) * speed;
-                        if (this.x < wall.x + wall.width &&
-                            this.x + this.width > wall.x &&
-                            this.y < wall.y + wall.height &&
-                            this.y + this.height > wall.y) {
-                            if (downPressed) {
-                                this.y = wall.y - this.height;
-                            } else {
-                                this.y = wall.y + wall.height;
+                        if (walls) {
+                            for (var w=0; w<walls.length; w++) {
+                                var wall = walls[w];
+                                if (this.x < wall.x + wall.width &&
+                                    this.x + this.width > wall.x &&
+                                    this.y < wall.y + wall.height &&
+                                    this.y + this.height > wall.y) {
+                                    if (downPressed) {
+                                        this.y = wall.y - this.height;
+                                        // check for move assist when pushing down on CORNER of wall
+                                        // make sure DOWN is the only key being pressed
+                                        if (this.x < wall.x && !upPressed &&
+                                            !leftPressed && !rightPressed) {
+                                            this.x -= this.slideSpeed;
+                                        } else if (this.x+this.width > wall.x+wall.width) {
+                                            this.x += this.slideSpeed;
+                                        }
+                                    } else if (upPressed) {
+                                        this.y = wall.y + wall.height;
+                                        // check for move assist when pushing up
+                                        if (this.x < wall.x && !downPressed &&
+                                            !leftPressed && !rightPressed) {
+                                            this.x -= this.slideSpeed;
+                                        } else if (this.x+this.width > wall.x+wall.width) {
+                                            this.x += this.slideSpeed;
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -145,21 +228,47 @@
                     }
                 }
 
-                function Wall(x, y, width, height, r, g, b) {
+                function Wall(x, y, width, height, color) {
                     this.x = x;
                     this.y = y;
                     this.width = width;
                     this.height = height;
                     
-                    this.r = r;
-                    this.g = g;
-                    this.b = b;
-                    this.color = '#000';
+                    this.color = color;
+                    this.r = 0;
+                    this.g = 0;
+                    this.b = 0;
+
+                    // break color string into individual hue properties
+                    this.breakString = function() {
+                        var tempString = this.color.replace('rgb(', '');
+                        tempString = tempString.replace(')', '');
+                        tempString = tempString.split(',');
+                        this.r = tempString[0];
+                        this.g = tempString[1];
+                        this.b = tempString[2];
+                    }
+                    // apply at the start to initialize hue properties
+                    this.breakString();
 
                     this.getString = function() {
                         this.color = 'rgb(' + this.r + ',' 
                             + this.g + ',' + this.b + ')';
-                    },
+                        //console.log(this.color);
+                    }
+
+                    this.changeClr =  function(hue, value) {
+                        switch(hue) {
+                            case 'all': this.r = this.g = this.b = value; break;
+                            case 'r': this.r = value; break;
+                            case 'g': this.g = value; break;
+                            case 'b': this.b = value; break;
+                            default: break;
+                        }
+                        // apply changes to main color string
+                        this.color = this.getString();
+                        //console.log(this.color);
+                    }
 
                     this.draw = function() {
                         ctx.beginPath();
@@ -246,7 +355,6 @@
                             } else {
                                 value = 255 * ((subject.x+subject.y)/2)
                                     / canDiag;
-                                console.log(value);
                             }
                             break;
                         
@@ -254,6 +362,8 @@
                             break;
                     }
                     // apply color change to target
+                    object.changeClr(hue, value);
+                    /*
                     switch(hue) {
                         case 'all': object.r = object.g = object.b = value; break;
                             case 'r': object.r = value; break;
@@ -261,11 +371,21 @@
                             case 'b': object.b = value; break;
                             default: break;
                     }
+                    */
                 }
 
                 function update() {
                     shiftClr(player, BGColor, 'x', 'b', true);
                     shiftClr(player, BGColor, 'y', 'r', false);
+
+                    shiftClr(player, player, 'x', 'b', false);
+                    shiftClr(player, player, 'y', 'r', true);
+
+                    header.style.color = 'rgba(' +
+                        255 * (player.x / canWidth) + ',' +
+                        255 * (player.x / canWidth) + ',' +
+                        255 * (player.x / canWidth) + ')';
+
                     player.update();
                     // draw background
                     ctx.beginPath();
@@ -273,15 +393,27 @@
                     ctx.fillRect(0, 0, canWidth, canHeight);
 
                     // draw walls
-                    wall.draw();
+                    for (var i=0; i<walls.length; i++) {
+                        // test color shift
+                        //shiftClr(player, walls[i], 'x', 'r', true);
+
+                        walls[i].draw();
+                    }
 
                     // draw player
                     player.draw();
                 }
 
-                var player = new Player(0, 0, TS, TS, 3, '#faa');
-                //var walls = [];
-                var wall = new Wall(TS*3, TS*3, TS, TS*5, '#000');
+                // IMPORTANT: make player slightly smaller in order to fit between gaps
+                var player = new Player(0, 0, TS*0.95, TS*0.95, 3, 'rgb(0,0,0)');
+                var walls = [];
+                walls.push(new Wall(TS*3, TS*3, TS, TS, 'rgb(0,0,0)'));
+                walls.push(new Wall(TS*3, TS*5, TS, TS, '#rgb(0,0,0)'));
+                walls.push(new Wall(TS*3, TS*6, TS, TS, '#rgb(0,0,0)'));
+
+                walls.push(new Wall(TS*5, TS*3, TS, TS, '#rgb(0,0,0)'));
+                walls.push(new Wall(TS*6, TS*3, TS, TS, '#rgb(0,0,0)'));
+
 
                 // start loop
                 setInterval(update, 10);
@@ -289,6 +421,7 @@
         </script>
     </head>
     <body>
+        <h1>SHIFTER</h1>
         <canvas width='512' height='512'>
             <p>Failed to load canvas.</p>
         </canvas>
