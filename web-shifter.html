@@ -2,13 +2,19 @@
     - add external scripts to be loaded (Player, Walls, etc)
     - add JSON ascii lvl maps + parsing function
     - create Background object
-    - change player/wall color settings to match BG and to work with colorShift methods ???? or not??
+    - change player/wall color settings to match BG and to work with colorShift methods? (or not?)
     - change all color formats from RGB to RGBA
     - make initial color param for color simple RGBA string, not individual arguments for hues
         then add parser to break down into individual hue properties
     - DONT USE SPACES WITH COLORS   not this: 'rgb(200, 200, 200)', this: 'rgb(200,200,200)'
     - choose between having clrChange method in all objects, or just having the colorShift method change properties
         and having the color string continually update in the object
+
+    - create Shifter object w/ methods inside
+    - create separate method for changing text color
+
+    - only allow control of game when canvas is in focus
+    - BUG: event handler only checks firsts key / doesn't accept OR statements?
 -->
 
 <!DOCTYPE html>
@@ -277,23 +283,26 @@
                     }
                 }
 
+                // uncomment to add mouse movement (negates wall collision  )
+                /*
                 onmousemove = function() {
                     player.x = event.clientX;
                     player.y = event.clientY;
                 }
+                */
 
                 function keyDownHandler(event) {
                     switch(event.key) {
-                        case 'ArrowRight' || 'right':
+                        case 'ArrowRight' || 'right'  || 'd':
                             rightPressed = true;
                             break;
-                        case 'ArrowLeft' || 'left':
+                        case 'ArrowLeft' || 'left' || 'a':
                             leftPressed = true;
                             break;
-                        case 'ArrowDown' || 'down':
+                        case 'ArrowDown' || 'down' || 's':
                             downPressed = true;
                             break;
-                        case 'ArrowUp' || 'up':
+                        case 'ArrowUp' || 'up' || 'w':
                             upPressed = true;
                             break;
                         default:
@@ -303,16 +312,16 @@
 
                 function keyUpHandler(event) {
                     switch(event.key) {
-                        case 'ArrowRight' || 'right':
+                        case 'ArrowRight' || 'right' || 'd':
                             rightPressed = false;
                             break;
-                        case 'ArrowLeft' || 'left':
+                        case 'ArrowLeft' || 'left' || 'a':
                             leftPressed = false;
                             break;
-                        case 'ArrowDown' || 'down':
+                        case 'ArrowDown' || 'down' || 's':
                             downPressed = false;
                             break;
-                        case 'ArrowUp' || 'up':
+                        case 'ArrowUp' || 'up' || 'w':
                             upPressed = false;
                             break;
                         default:
