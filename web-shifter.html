@@ -1,4 +1,6 @@
 <!--
+    REMEMBER PULL REQUEST!!!!
+
     - add external scripts to be loaded (Player, Walls, etc)
     - add JSON ascii lvl maps + parsing function
     - create Background object
@@ -14,6 +16,15 @@
     - Only allow game control when canvas is in focus
     - include starting color values of player, background, and respective shift effects in JSON 
         (hopefully, walls will have built in using flags)
+
+    - FEATURE: when player is outside area of effect (arena), the bg color stays the same, and stops tracking,
+        if entered in by a different point (ex: if based on 'x' axis, and enteres from below), 
+        it jumps to that color. This could be great for limiting perspective,
+        and as a means of suprise   
+
+        - setup rangeToArena=false arg
+    
+    - have foreground object with background objects
 -->
 
 <!DOCTYPE html>
@@ -124,7 +135,9 @@
                 /* Shifter object changes properties of an object (ex: color) based on
                     properties of another subject (ex: position)
                 */
+
                 const Shifter = {
+                    
                     /*  
                       shiftObjClr() changes the color values of a given subject
                     based on the position of a given object, in the range of the canvas size 
@@ -135,6 +148,10 @@
                      - A Color object with r/g/b/a/string properties
                      - setClrString() method
 
+                    arena must be an object with x/y/width/height
+                     - can be set to limit the range in which a shift effect will be valid (limitEffectToArena)
+                     - can be set to resize the min/max range of an effect (setRangeToArena)
+
                     axis args:
                      - 'x': horizontal
                      - 'y': vertical
@@ -143,57 +160,83 @@
                     hue args include 'r', 'g', 'b', 'a', 'all'
                     NOTE: 'all' only affects rgb, NOT transparency
 
+                    Optional args:
+
                       reversed arg starts the effect slider at the other end of the arena,
                     ex:    hue='r', axis='x', reversed=false -> moving from left to right increases hue, starting at min
                             reversed=true -> moving from left to right decreases hue, starting at at max
+                    
+                    limitEffectToArena (false by default) only allows the color of a surface to be changed IF
+                        the subject is collising with the specified arena
                     */
-                    shiftObjClr: function(subject, object, axis, hue, reversed) {
-                        // Get new color value based on object position and axis
-                        var value;
-                        switch(axis) {
-                            case 'x': 
-                                // If reversed, the given hue brightness is affected inversly
-                                if(reversed) {
-                                    value = 255 - (255*(subject.x/canWidth));
-                                } else {
-                                    value = 255 * (subject.x/canWidth);
-                                }
-                                break;
-                            
-                            case 'y':
-                                if(reversed) {
-                                    value = 255 - (255*(subject.y/canHeight));
-                                } else {
-                                    value = 255 * (subject.y/canHeight);
-                                }
-                                break;
-                            
-                            case 'xy':
-                                if(reversed) {
-                                    value = 255 - (255*((subject.x+subject.y)/2) 
-                                        / canDiag);
-                                } else {
-                                    value = 255 * ((subject.x+subject.y)/2)
-                                        / canDiag;
-                                }
-                                break;
-                            
-                            default: value = 0; 
-                                break;
+
+                    shiftObjClr: function(subject, object, arena, axis, hue,
+                            reversed, limitEffectToArena) { // setRangeToArena to be added
+                        
+                        // If limitEffectToArena check if subject in within arena bounds
+                        // isInBounds is active by default
+                        var isInBounds = true;
+                        if (limitEffectToArena) {
+                            if (subject.x < arena.x + arena.width &&
+                            subject.x + subject.width > arena.x &&
+                            subject.y < arena.y + arena.height &&
+                            subject.y + subject.height > arena.y) {
+                                isInBounds = true;
+                            } else {
+                                isInBounds = false;
+                            }
                         }
-                        // Apply color change to target
-                        switch(hue) {
-                            case 'all':
-                                object.Color.r = object.Color.g = object.Color.b = value;
-                                break;
-                            case 'r': object.Color.r = value; break;
-                            case 'g': object.Color.g = value; break;
-                            case 'b': object.Color.b = value; break;
-                            case 'a': object.Color.a = value; break;
-                            default: break;
+
+                        if (isInBounds) {
+
+                            // Get new color value based on object position and axis
+                            var value;
+                            switch(axis) {
+                                case 'x': 
+                                    // If reversed, the given hue brightness is affected inversly
+                                    if(reversed) {
+                                        value = 255 - (255*(subject.x/canWidth));
+                                    } else {
+                                        value = 255 * (subject.x/canWidth);
+                                    }
+                                    break;
+                                
+                                case 'y':
+                                    if(reversed) {
+                                        value = 255 - (255*(subject.y/canHeight));
+                                    } else {
+                                        value = 255 * (subject.y/canHeight);
+                                    }
+                                    break;
+                                
+                                case 'xy':
+                                    if(reversed) {
+                                        value = 255 - (255*((subject.x+subject.y)/2) 
+                                            / canDiag);
+                                    } else {
+                                        value = 255 * ((subject.x+subject.y)/2)
+                                            / canDiag;
+                                    }
+                                    break;
+                                
+                                default: value = 0; 
+                                    break;
+                            }
+                            // Apply color change to target
+                            switch(hue) {
+                                case 'all':
+                                    object.Color.r = object.Color.g = object.Color.b = value;
+                                    break;
+                                case 'r': object.Color.r = value; break;
+                                case 'g': object.Color.g = value; break;
+                                case 'b': object.Color.b = value; break;
+                                case 'a': object.Color.a = value; break;
+                                default: break;
+                            }
+                            // Reset object's Color.string property
+                            object.setClrString();
                         }
-                        // Reset object's Color.string property
-                        object.setClrString();
+
                     }
                 }
 
@@ -407,9 +450,8 @@
                     ctx.clearRect(0, 0, canWidth, canHeight);
 
                     // Test color shift
-                    Shifter.shiftObjClr(BG, player, 'x', 'r', false);
-                    Shifter.shiftObjClr(player, BG, 'x', 'r', true);
-
+                    Shifter.shiftObjClr(player, BG1, BG1, 'x', 'all', false);
+                    Shifter.shiftObjClr(player, BG2, BG2, 'x', 'all', false, true);
 
                     // Change header color
                     header.style.color = 'rgba(' +
@@ -419,13 +461,14 @@
 
                     player.update();
                     // draw background
-                    BG.draw(ctx);
+                    BG1.draw(ctx);
+                    BG2.draw(ctx);
+                    BG3.draw(ctx);
+                    BG4.draw(ctx);
 
                     // draw walls
                     for (var i=0; i<walls.length; i++) {
                         // test color shift
-                        Shifter.shiftObjClr(player, walls[i], 'x', 'b', false);
-
                         walls[i].draw(ctx);
                     }
 
@@ -436,20 +479,23 @@
 
                 }
 
+                // JSON test
+                fetch('level-data/test-level.json')
+                    .then(response=>response.json())
+                    .then(json=>console.log(json));
+
                 // INITIALIZE GAME ELEMENTS
 
+                const backgrounds = []; 
+                var BG1 = new Background(0, 0, canWidth/2, canHeight/2, 'rgba(0,0,0,1)');
+                var BG2 = new Background(canWidth/2, 0, canWidth/2, canHeight/2, 'rgba(0,0,0,1)');
+                var BG3 = new Background(0, canHeight/2, canWidth/2, canHeight/2, 'rgba(0,0,0,1)');
+                var BG4 = new Background(canWidth/2, canHeight/2, canWidth/2, canHeight/2, 'rgba(0,0,0,1)');
+
                 // IMPORTANT: make player slightly smaller in order to fit between gaps
-                var player = new Player(0, 0, TS*0.95, TS*0.95, 3, 'rgba(0,0,0,1)');
-                var walls = [];
-                walls.push(new Wall(TS*3, TS*3, TS, TS, 'rgb(0,0,0,1)'));
-                walls.push(new Wall(TS*3, TS*5, TS, TS, 'rgba(0,0,0,1)'));
-                walls.push(new Wall(TS*3, TS*6, TS, TS, 'rgba(0,0,0,1)'));
-
-                walls.push(new Wall(TS*5, TS*3, TS, TS, 'rgba(0,0,0,1)'));
-                walls.push(new Wall(TS*6, TS*3, TS, TS, 'rgba(0,0,0,1)'));
-
-                var BG = new Background(0, 0, canWidth, canHeight, 'rgba(255,0,0,1)');
-
+                var player = new Player(TS, TS, TS*0.95, TS*0.95, 3, 'rgba(0,0,0,1)');
+                const walls = [];
+                walls.push(new Wall(0, 0, TS, TS, 'rgba(0,0,0,1)'));
 
                 // start loop
                 setInterval(update, 10);
@@ -462,4 +508,4 @@
             <p>Failed to load canvas.</p>
         </canvas>
     </body>
-</html>
+</html> 
