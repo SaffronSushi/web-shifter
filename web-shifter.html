@@ -166,17 +166,17 @@
                     ex:    hue='r', axis='x', reversed=false -> moving from left to right increases hue, starting at min
                             reversed=true -> moving from left to right decreases hue, starting at at max
                     
-                    limitEffectToArena (false by default) only allows the color of a surface to be changed IF
+                    onlyAffectInBounds (false by default) only allows the color of a surface to be changed IF
                         the subject is collising with the specified arena
                     */
 
-                    shiftObjClr: function(subject, object, arena, axis, hue,
-                            reversed, limitEffectToArena) { // setRangeToArena to be added
+                    posToClr: function(subject, object, arena, axis, hue,
+                            reversed, onlyAffectInBounds) { // scaleEffectToArena to be added
                         
-                        // If limitEffectToArena check if subject in within arena bounds
+                        // If onlyAffectInBounds check if subject in within arena bounds
                         // isInBounds is active by default
                         var isInBounds = true;
-                        if (limitEffectToArena) {
+                        if (onlyAffectInBounds) {
                             if (subject.x < arena.x + arena.width &&
                             subject.x + subject.width > arena.x &&
                             subject.y < arena.y + arena.height &&
@@ -236,7 +236,6 @@
                             // Reset object's Color.string property
                             object.setClrString();
                         }
-
                     }
                 }
 
@@ -450,8 +449,7 @@
                     ctx.clearRect(0, 0, canWidth, canHeight);
 
                     // Test color shift
-                    Shifter.shiftObjClr(player, BG1, BG1, 'x', 'all', false);
-                    Shifter.shiftObjClr(player, BG2, BG2, 'x', 'all', false, true);
+                    Shifter.posToClr(player, BG1, BG1, 'x', 'all', false);
 
                     // Change header color
                     header.style.color = 'rgba(' +
@@ -459,41 +457,32 @@
                         255 * (player.x / canWidth) + ',' +
                         255 * (player.x / canWidth) + ')';
 
+                    // update player
                     player.update();
+
                     // draw background
                     BG1.draw(ctx);
-                    BG2.draw(ctx);
-                    BG3.draw(ctx);
-                    BG4.draw(ctx);
 
                     // draw walls
                     for (var i=0; i<walls.length; i++) {
                         // test color shift
+                        Shifter.posToClr(player, walls[i], BG1, 'x', 'b', true);
                         walls[i].draw(ctx);
                     }
 
                     // draw player
                     player.draw(ctx);
-
-                    //testBG.draw(ctx);
-
                 }
 
                 // JSON test
-                fetch('level-data/test-level.json')
-                    .then(response=>response.json())
-                    .then(json=>console.log(json));
 
                 // INITIALIZE GAME ELEMENTS
 
-                const backgrounds = []; 
-                var BG1 = new Background(0, 0, canWidth/2, canHeight/2, 'rgba(0,0,0,1)');
-                var BG2 = new Background(canWidth/2, 0, canWidth/2, canHeight/2, 'rgba(0,0,0,1)');
-                var BG3 = new Background(0, canHeight/2, canWidth/2, canHeight/2, 'rgba(0,0,0,1)');
-                var BG4 = new Background(canWidth/2, canHeight/2, canWidth/2, canHeight/2, 'rgba(0,0,0,1)');
+                // const backgrounds = []; 
+                var BG1 = new Background(0, 0, canWidth, canHeight, 'rgba(0,0,0,1)');
 
                 // IMPORTANT: make player slightly smaller in order to fit between gaps
-                var player = new Player(TS, TS, TS*0.95, TS*0.95, 3, 'rgba(0,0,0,1)');
+                var player = new Player(TS, TS, TS*0.95, TS*0.95, 3, 'rgba(200,0,0,1)');
                 const walls = [];
                 walls.push(new Wall(0, 0, TS, TS, 'rgba(0,0,0,1)'));
 
