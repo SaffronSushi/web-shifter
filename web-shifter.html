@@ -26,7 +26,9 @@
     
     - have foreground object with background objects
 
-    - delta time?
+    - delta time? already on 10 millesecond interval
+
+    - have mono levels be basic colors?
 -->
 
 <!DOCTYPE html>
@@ -408,12 +410,14 @@
                     }
                 }
 
-                function Wall(x, y, width, height, color) {
+                function Wall(x, y, width, height, color, shiftType) {
                     this.x = x;
                     this.y = y;
                     this.width = width;
                     this.height = height;
                     this.Color = {r:0, g:0, b:0, a:0, string:color}
+
+                    this.shiftType = shiftType;
 
                     // breakClrString() returns the isolated values from RGBA string
                     this.breakClrString = function() {
@@ -451,8 +455,7 @@
                     ctx.clearRect(0, 0, canWidth, canHeight);
 
                     // Test color shift
-                    Shifter.posToClr(player, BG1, BG1, 'x', 'r', false);
-                    Shifter.posToClr(player, BG1, BG1, 'x', 'b', true);
+                    Shifter.posToClr(player, BG1, BG1, 'x', 'all', false);
 
                     // Test color shift
                     Shifter.posToClr(player, player, BG1, 'x', 'b', false);
@@ -469,7 +472,16 @@
                     // draw walls
                     for (var i=0; i<walls.length; i++) {
                         // test color shift
-                        Shifter.posToClr(player, walls[i], BG1, 'xy', 'all', false);
+                        switch (walls[i].shiftType) {
+                            case 'monoX':
+                                Shifter.posToClr(player, walls[i], BG1, 'x', 'all', false);
+                                break;
+                            case 'monoY':
+                                Shifter.posToClr(player, walls[i], BG1, 'y', 'all', false);
+                                break;
+                            default:
+                                break;
+                        }
                         walls[i].draw(ctx);
                     }
 
@@ -488,7 +500,7 @@
 
                 // IMPORTANT: make player slightly smaller in order to fit between gaps
                 var player = new Player(TS, TS, TS*0.95, TS*0.95, 3, 'rgba(200,0,0,1)');
-                const walls = [];
+                var walls = [];
                 walls.push(new Wall(0, 0, TS, TS, 'rgba(0,0,0,1)'));
 
                 // JSON test
@@ -499,11 +511,57 @@
                 
                 request.onload = function() {
                     var levelData = request.response;
-                    console.log(levelData.tileSize);
+
                     TS = canWidth / levelData.tileSize;
 
-                    player.width = TS;
-                    player.height = TS;
+                    for (var r=0; r<levelData.levelLayout.player.length; r++) {
+                        var row = levelData.levelLayout.player[r];
+                        for (var c=0; c<row.length; c++) {
+                            if (levelData.levelLayout.player[r][c] === '@') {
+                                player = new Player(TS*c, TS*r, TS*0.95, TS*0.95, 3, 'rgba(200,0,0,1)');
+                            }
+                        }
+                    }
+
+                    walls = [];
+
+                    for (var r=0; r<levelData.levelLayout.monoWalls.length; r++) {
+                        var row = levelData.levelLayout.monoWalls[r];
+                        for (var c=0; c<row.length; c++) {
+                            var index = levelData.levelLayout.monoWalls[r][c];
+                            if (index !== '.') {
+                                var monoValue = index * TS;
+                                walls.push(new Wall(TS*c, TS*r, TS, TS,  
+                                    'rgba('+monoValue+','+monoValue+','+monoValue+',1)', null));
+                            }
+                        }
+                    }
+
+                    for (var r=0; r<levelData.levelLayout.monoXWalls.length; r++) {
+                        var row = levelData.levelLayout.monoXWalls[r];
+                        for (var c=0; c<row.length; c++) {
+                            switch (levelData.levelLayout.monoXWalls[r][c]) {
+                                case '0':
+                                    walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)', 'monoX'));
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                    
+                    for (var r=0; r<levelData.levelLayout.monoYWalls.length; r++) {
+                        var row = levelData.levelLayout.monoYWalls[r];
+                        for (var c=0; c<row.length; c++) {
+                            switch (levelData.levelLayout.monoYWalls[r][c]) {
+                                case '0':
+                                    walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)', 'monoY'));
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
 
                     // start loop
                     setInterval(update, 10);
