@@ -25,6 +25,8 @@
         - setup rangeToArena=false arg
     
     - have foreground object with background objects
+
+    - delta time?
 -->
 
 <!DOCTYPE html>
@@ -449,7 +451,11 @@
                     ctx.clearRect(0, 0, canWidth, canHeight);
 
                     // Test color shift
-                    Shifter.posToClr(player, BG1, BG1, 'x', 'all', false);
+                    Shifter.posToClr(player, BG1, BG1, 'x', 'r', false);
+                    Shifter.posToClr(player, BG1, BG1, 'x', 'b', true);
+
+                    // Test color shift
+                    Shifter.posToClr(player, player, BG1, 'x', 'b', false);
 
                     // Change header color
                     header.style.color = 'rgba(' +
@@ -457,25 +463,24 @@
                         255 * (player.x / canWidth) + ',' +
                         255 * (player.x / canWidth) + ')';
 
-                    // update player
-                    player.update();
-
                     // draw background
                     BG1.draw(ctx);
 
                     // draw walls
                     for (var i=0; i<walls.length; i++) {
                         // test color shift
-                        Shifter.posToClr(player, walls[i], BG1, 'x', 'b', true);
+                        Shifter.posToClr(player, walls[i], BG1, 'xy', 'all', false);
                         walls[i].draw(ctx);
                     }
 
                     // draw player
-                    player.draw(ctx);
+                    if (player) {
+                        player.update();
+                        player.draw(ctx);
+                    }
                 }
 
-                // JSON test
-
+                
                 // INITIALIZE GAME ELEMENTS
 
                 // const backgrounds = []; 
@@ -486,8 +491,25 @@
                 const walls = [];
                 walls.push(new Wall(0, 0, TS, TS, 'rgba(0,0,0,1)'));
 
-                // start loop
-                setInterval(update, 10);
+                // JSON test
+                var request = new XMLHttpRequest();
+                var url = 'level-data/test-level.json';
+                request.open('GET', url);
+                request.responseType = 'json';
+                
+                request.onload = function() {
+                    var levelData = request.response;
+                    console.log(levelData.tileSize);
+                    TS = canWidth / levelData.tileSize;
+
+                    player.width = TS;
+                    player.height = TS;
+
+                    // start loop
+                    setInterval(update, 10);
+                }
+                request.send();
+
             });
         </script>
     </head>

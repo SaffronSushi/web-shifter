@@ -1,5 +1,4 @@
 {
-    "levelLayout": {
-        "000000000000"
-    }
+    "tileSize": 16,
+    "levelLayout": "00000000"
 }
