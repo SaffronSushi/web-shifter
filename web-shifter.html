@@ -2,16 +2,7 @@
     REMEMBER PULL REQUEST!!!!
 
     - add external scripts to be loaded (Player, Walls, etc)
-    - add JSON ascii lvl maps + parsing function
-    - create Background object
-    - change player/wall color settings to match BG and to work with colorShift methods ???? or not??
-    - change all color formats from RGB to RGBA
-    - make initial color param for color simple RGBA string, not individual arguments for hues
-        then add parser to break down into individual hue properties
-    - DONT USE SPACES WITH COLORS   not this: 'rgb(200, 200, 200)', this: 'rgb(200,200,200)'
-    - choose between having clrChange method in all objects, or just having the colorShift method change properties
-        and having the color string continually update in the object
-    - dynamic property to walls
+
     - Key handler doesn't use OR statements with case args PS: add w/a/s/d
     - Only allow game control when canvas is in focus
     - include starting color values of player, background, and respective shift effects in JSON 
@@ -25,8 +16,6 @@
         - setup rangeToArena=false arg
     
     - have foreground object with background objects
-
-    - delta time? already on 10 millesecond interval
 
     - have mono levels be basic colors?
 
@@ -49,29 +38,13 @@
             }
         ]
 
-    "player":
-        "position":
-            [".........",
-             "..@......"]
-    
-    wall parser:
-            const excessGlyphs = ['a','b','c','d','e','f','g','h', etc...];
-            monoValue = index+excessGlyphs[i];
-    
-    wall update:
-    * add the following variables as properties
-      and check in game loop when updating walls
-            var wallAxis;
-            switch(walls[i].shiftAxis):
-            var wallHue;
-            switch(walls[i].shiftHue);
 -->
 
 <!DOCTYPE html>
 <html lang='en'>
     <head>
         <meta charset='utf-8'>
-        <link rel='shortcut icon' href=''> <!-- Added to prevent favicon.ico error -->
+        <link rel='shortcut icon' href=''> <!-- Added to prevent "missing favicon.ico" error -->
         <meta name='viewport' content='width=device-width, initial-scale=1.0'>
         <title>Shifter</title>
         <style>

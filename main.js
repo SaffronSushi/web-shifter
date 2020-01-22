@@ -204,12 +204,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // OBJECT CONSTRUCTORS
 
     // color MUST be RGBA() string with NO SPACES
-    function Background(x, y, width, height, color) {
+    function Background(x, y, width, height, color, shiftType) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.Color = {r:0, g:0, b:0, a:0, string:color}
+        this.shiftType = shiftType;
 
         // breakClrString() returns the isolated values from RGBA string
         this.breakClrString = function() {
@@ -280,12 +281,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         this.update = function() {
-            // for strange reasons, collision seems to only work if
+            // For strange reasons, collision seems to only work if
             //    x/y coordinates are checked for collision independantly
 
-            // apply x velocity and check horizontal collisions
+            // Apply x velocity and check horizontal collisions
             this.x += (rightPressed - leftPressed) * speed;
-            // check wall collisions
+            // Check wall collisions
             if (walls) {
                 for (var w=0; w<walls.length; w++) {
                     var wall = walls[w];
@@ -368,13 +369,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Endblock triggers level transition
+    function EndBlock(x, y, width, height, active, shiftType) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.active = active;
+
+        this.shiftType = shiftType;
+
+        // endBlock's color is constant
+        this.color = 'rgba(0,0,255,1)';
+
+        // Draw background image to given canvas context
+        this.draw = function(surface) {
+            surface.beginPath();
+            surface.fillStyle = this.color;
+            surface.fillRect(this.x, this.y, this.width, this.height);
+        }
+
+        // Check for player collision
+        // Trigger object must have x/y/width/height properties
+        this.update = function(triggerObj=null) {
+            if(triggerObj) {
+                if (this.active && this.x < triggerObj.x + triggerObj.width &&
+                    this.x + this.width > triggerObj.x &&
+                    this.y < triggerObj.y + triggerObj.height &&
+                    this.y + this.height > triggerObj.y) {
+                    levelNum++;
+                    setLevel(levelNum);
+
+                    // Set active to false so level transition only happens once
+                    this.active = false;
+                }
+            }
+        }
+    }
+
     function Wall(x, y, width, height, color, shiftType) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
         this.Color = {r:0, g:0, b:0, a:0, string:color}
-
         this.shiftType = shiftType;
 
         // breakClrString() returns the isolated values from RGBA string
@@ -409,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // LEVEL PARSING
     // parseLevel() reads local JSON files, creating instances of game elements
-    function parseLevel() {
+    function parseLevel(fileName) {
         // Reset default essential elements and properties
         TS = canWidth / 16;
         // IMPORTANT: make player slightly smaller in order to fit between gaps
@@ -424,6 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const Icons = {
             'empty': '.',
             'player': '@',
+            'endBlock': '#',
 
             // Icons for dynamic walls, and dynamic walls w/ 'reversed' effect applied
             'dynamic': {
@@ -446,7 +485,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Create new XHR request
         var request = new XMLHttpRequest();
-        var url = 'level-data/test-level.json';
+        var url = fileName;
         request.open('GET', url);
         request.responseType = 'json';
         
@@ -459,10 +498,15 @@ document.addEventListener('DOMContentLoaded', function() {
             TS = canWidth / levelData.tileSize;
 
             shiftTarget = eval(levelData.shiftTarget); // Remember to use eval!
+            BGShiftType = levelData.BGData.shiftType;
 
             // Get player data
             var playerData = levelData.playerData;
-            
+
+            // Apply shift settings
+            player.shiftType = playerData.shiftType;
+            player.shiftTarget = playerData.shiftTarget;
+
             // Loop through columns and rows in text array to get position
             for (var r=0; r<playerData.position.length; r++) {
                 for (var c=0; c<playerData.position[r].length; c++) {
@@ -475,10 +519,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
+            // Get endBlock data
+            var endBlockData = levelData.endBlockData;
+
+            // Get position
+            for (var r=0; r<endBlockData.position.length; r++) {
+                for (var c=0; c<endBlockData.position[r].length; c++) {
+
+                    // Check for matching icon
+                    if (endBlockData.position[r][c] === Icons.endBlock) {
+                        endBlock.x = TS*c;
+                        endBlock.y = TS*r;
+                    }
+                }
+            }
+
+            // Reset endBlock so that it is now active
+            endBlock.active = true;
+
             // Get background data
-            //
-            //
-            //
+            var BGData = levelData.BGData;
+            
+            // Apply shift settings
+            BG1.shiftType = BGData.shiftType;
+            BG1.shiftTarget = BGData.shiftTarget;
 
             // Get wall data
 
@@ -510,6 +574,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Dynamic BW walls
 
             var dynamicData = levelData.wallData.dynamicMono;
+
+            // Apply shift settings
+            wallShiftTarget = levelData.walls.shiftTarget;
+
             for (var r=0; r<dynamicData.length; r++) {
                 for (var c=0; c<dynamicData[r].length; c++) {
 
@@ -546,6 +614,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
     }
 
+    function setLevel(newLevelNum) {
+        parseLevel('level-data/level-' + newLevelNum + '.json');
+    }
+
     // MAIN GAME LOOP
 
     function mainLoop() {
@@ -553,14 +625,12 @@ document.addEventListener('DOMContentLoaded', function() {
         ctx.clearRect(0, 0, canWidth, canHeight);
 
         // Change header color
-        /*
         header.style.color = 'rgba(' +
             255 * (player.x / canWidth) + ',' +
             255 * (player.x / canWidth) + ',' +
             255 * (player.x / canWidth) + ')';
-        */
 
-        Shifter.posToClr(shiftTarget, BG1, BG1, 'x', 'all', false);
+        Shifter.posToClr(shiftTarget, BG1, BG1, BGShiftType, 'all', false);
 
         // Draw backgrounds
         for (var i=0; i<backgrounds.length; i++) {
@@ -570,29 +640,36 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update and draw walls
         for (var i=0; i<walls.length; i++) {
             // Check for shift type, and apply effect accordingly
+            
             switch (walls[i].shiftType) {
                 case 'monoX':
-                    Shifter.posToClr(shiftTarget, walls[i], BG1, 'x', 'all', false);
+                    Shifter.posToClr(wallShiftTarget, walls[i], BG1, 'x', 'all', false);
                     break;
                 case 'revMonoX':
-                    Shifter.posToClr(shiftTarget, walls[i], BG1, 'x', 'all', true);
+                    Shifter.posToClr(wallShiftTarget, walls[i], BG1, 'x', 'all', true);
                     break;
                 case 'monoY':
-                    Shifter.posToClr(shiftTarget, walls[i], BG1, 'y', 'all', false);
+                    Shifter.posToClr(wallShiftTarget, walls[i], BG1, 'y', 'all', false);
                     break;
                 case 'revMonoY':
-                    Shifter.posToClr(shiftTarget, walls[i], BG1, 'y', 'all', true);
+                    Shifter.posToClr(wallShiftTarget, walls[i], BG1, 'y', 'all', true);
                     break;
                 case 'monoXY':
-                    Shifter.posToClr(shiftTarget, walls[i], BG1, 'xy', 'all', false);
+                    Shifter.posToClr(wallShiftTarget, walls[i], BG1, 'xy', 'all', false);
                     break;
                 case 'revMonoXY':
-                    Shifter.posToClr(shiftTarget, walls[i], BG1, 'xy', 'all', true);
+                    Shifter.posToClr(wallShiftTarget, walls[i], BG1, 'xy', 'all', true);
                     break;
                 default:
                     break;
             }
             walls[i].draw(ctx);
+        }
+
+        // Update and draw endBlock
+        if (endBlock) {
+            endBlock.update(player);
+            endBlock.draw(ctx);
         }
 
         // Update and draw player
@@ -606,16 +683,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var TS = canWidth / 16;
     // IMPORTANT: make player slightly smaller in order to fit between gaps
     //      at the moment, 3.5 is the fastest w/out passing gaps
-    var player = new Player(TS, TS, TS*0.95, TS*0.95, 3.5, 'rgba(240,0,0,1)');
+    var player = new Player(TS, TS, TS*0.94, TS*0.94, 3.5, 'rgba(240,0,0,1)');
+    var endBlock = new EndBlock(canWidth-TS, canHeight-TS, TS, TS, true, null);
     var walls = [];
     var backgrounds = [];
     var BG1 = new Background(0, 0, canWidth, canHeight, 'rbga(200,200,200,1)');
     backgrounds.push(BG1);
 
-    var shiftTarget = player;
+    var levelNum = 0;
 
-    // After parsing level, initialize loop of 10 second intervals
-    parseLevel();
     // parseLevel() takes time, set up event listener?
+    setLevel(levelNum);
+    // After parsing level, initialize loop of 10 second intervals
     setInterval(mainLoop, 10);
 });

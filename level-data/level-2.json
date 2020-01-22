@@ -1,13 +1,15 @@
 {
     "tileSize": 16,
+    "shiftTarget": "player",
+
+    "BGData":
+    {
+        "shiftType": "x"
+    },
 
     "playerData": {
         "size": {"width":0.95, "height":0.95},
         "color": "rgba(240,0,0,1)",
-
-        "shiftType": null,
-        "shiftTarget": null,
-        
         "position":
         [
             "................",
@@ -30,7 +32,7 @@
     },
 
     "endBlockData": {
-        "toLevel": 1,
+        "toLevel": 3,
         "position":
         [
             "................",
@@ -51,14 +53,9 @@
             "................"
         ]
     },
-    
-    "BGData":{
-        "shiftType": "x",
-        "shiftTarget": "player"
-    },
 
-    "wallData": {
-        "shiftTarget": "player",
+    "wallData": 
+    {
         "staticMono":
         [
             "111133337777bbbb",
