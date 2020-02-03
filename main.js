@@ -127,77 +127,55 @@ document.addEventListener('DOMContentLoaded', function() {
           reversed arg starts the effect slider at the other end of the arena,
         ex:    hue='r', axis='x', reversed=false -> moving from left to right increases hue, starting at min
                 reversed=true -> moving from left to right decreases hue, starting at at max
-        
-        onlyAffectInBounds (false by default) only allows the color of a surface to be changed IF
-            the subject is collising with the specified arena
         */
 
-        posToClr: function(subject, object, arena, axis, hue,
-                reversed, onlyAffectInBounds) { // scaleEffectToArena to be added
-            
-            // If onlyAffectInBounds check if subject in within arena bounds
-            // isInBounds is active by default
-            var isInBounds = true;
-            if (onlyAffectInBounds) {
-                if (subject.x < arena.x + arena.width &&
-                subject.x + subject.width > arena.x &&
-                subject.y < arena.y + arena.height &&
-                subject.y + subject.height > arena.y) {
-                    isInBounds = true;
-                } else {
-                    isInBounds = false;
-                }
+        posToClr: function(subject, object, arena, axis, hue, reversed) {
+            // Get new color value based on object position and axis
+            var value;
+            switch(axis) {
+                case 'x': 
+                    // If reversed, the given hue brightness is affected inversly
+                    if(reversed) {
+                        value = 255 - (255*(subject.x/canWidth));
+                    } else {
+                        value = 255 * (subject.x/canWidth);
+                    }
+                    break;
+                
+                case 'y':
+                    if(reversed) {
+                        value = 255 - (255*(subject.y/canHeight));
+                    } else {
+                        value = 255 * (subject.y/canHeight);
+                    }
+                    break;
+                
+                case 'xy':
+                    if(reversed) {
+                        value = 255 - (255*((subject.x+subject.y)/2) 
+                            / canDiag);
+                    } else {
+                        value = 255 * ((subject.x+subject.y)/2)
+                            / canDiag;
+                    }
+                    break;
+                
+                default: value = 0; 
+                    break;
             }
-
-            if (isInBounds) {
-
-                // Get new color value based on object position and axis
-                var value;
-                switch(axis) {
-                    case 'x': 
-                        // If reversed, the given hue brightness is affected inversly
-                        if(reversed) {
-                            value = 255 - (255*(subject.x/canWidth));
-                        } else {
-                            value = 255 * (subject.x/canWidth);
-                        }
-                        break;
-                    
-                    case 'y':
-                        if(reversed) {
-                            value = 255 - (255*(subject.y/canHeight));
-                        } else {
-                            value = 255 * (subject.y/canHeight);
-                        }
-                        break;
-                    
-                    case 'xy':
-                        if(reversed) {
-                            value = 255 - (255*((subject.x+subject.y)/2) 
-                                / canDiag);
-                        } else {
-                            value = 255 * ((subject.x+subject.y)/2)
-                                / canDiag;
-                        }
-                        break;
-                    
-                    default: value = 0; 
-                        break;
-                }
-                // Apply color change to target
-                switch(hue) {
-                    case 'all':
-                        object.Color.r = object.Color.g = object.Color.b = value;
-                        break;
-                    case 'r': object.Color.r = value; break;
-                    case 'g': object.Color.g = value; break;
-                    case 'b': object.Color.b = value; break;
-                    case 'a': object.Color.a = value; break;
-                    default: break;
-                }
-                // Reset object's Color.string property
-                object.setClrString();
+            // Apply color change to target
+            switch(hue) {
+                case 'all':
+                    object.Color.r = object.Color.g = object.Color.b = value;
+                    break;
+                case 'r': object.Color.r = value; break;
+                case 'g': object.Color.g = value; break;
+                case 'b': object.Color.b = value; break;
+                case 'a': object.Color.a = value; break;
+                default: break;
             }
+            // Reset object's Color.string property
+            object.setClrString();
         }
     }
 
