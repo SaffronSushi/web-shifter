@@ -60,6 +60,13 @@ document.addEventListener('DOMContentLoaded', function() {
         ]
     }
 
+    // File names for levels to be loaded
+    // MUST prefix with 'level-data/' and end with '.json' when processing
+    const levels = [
+        'test-level', 'level-1'
+    ]
+    var levelNum = 0;
+
     // Add event flags
     var leftPressed = false;
     var rightPressed = false;
@@ -161,10 +168,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Check for collision with target
         this.update = function() {
-            if (this.active && this.x < target.x + target.radius &&
+            if (this.active && this.x < target.x + target.width &&
                 this.x + this.radius > target.x &&
-                this.y < target.y + target.radius &&
+                this.y < target.y + target.height &&
                 this.y + this.radius > target.y) {
+
+                // Change level
+                levelNum++;
+                changeLevel(levelNum);
+
+                console.log('a');
 
                 // Set active to false so level transition only happens once
                 this.active = false;
@@ -784,6 +797,12 @@ document.addEventListener('DOMContentLoaded', function() {
         request.send();
     }
 
+    // Gets filename from list of levels, and calls parser function
+    // also starting the game loop
+    function changeLevel(levelIndex) {
+        parseLevel('new-level-data/' + levels[levelIndex] + '.json');
+    }
+
     // Define main game loop to update and draw game elements
     function mainLoop() {
         var Settings = ShiftSettings;
@@ -798,7 +817,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 Shifter.posToClr(eval(Settings.BG.target), BG, 
                     Settings.BG.shiftAxis, Settings.BG.shiftHue, Settings.BG.reversed);
             }
-            //  BG.draw(ctx);
+            BG.draw(ctx);
         }
 
         // Draw walls
@@ -830,6 +849,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initialize game objects + game loop and set loop 10 millesecond intervals
-    parseLevel('new-level-data/test-level.json');
+    // Initialize game
+    changeLevel(0);
 });
