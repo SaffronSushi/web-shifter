@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const Shifter = {
         
         /*  
-          shiftObjClr() changes the color values of a given subject
+        shiftObjClr() changes the color values of a given subject
         based on the position of a given object, in the range of the canvas size 
         (might change later w/ 'space' arg for smaller self contained areas of effect)
 
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.Color.b = Number(tempString[2]);
             this.Color.a = Number(tempString[3]);
         }
-        // apply at the start to initialize hue properties
+        // apply at the start to initialize hue propqerties
         this.breakClrString();
 
         // setClrString() assigns usable string from individual hue values
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // LEVEL PARSING
     // parseLevel() reads local JSON files, creating instances of game elements
-    function parseLevel(fileName) {
+        Level(fileName) {
         // Reset default essential elements and properties
         TS = canWidth / 16;
         // IMPORTANT: make player slightly smaller in order to fit between gaps
