@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'r': objClrProps.r = value; break;
                 case 'g': objClrProps.g = value; break;
                 case 'b': objClrProps.b = value; break;
-                case 'a': objClrProps.a = value; break;
+                case 'a': objClrProps.a = (1/255)*value;break;
                 default: break;
             }
             // Reset object's Color.string property
@@ -443,8 +443,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Check for matching icon
                     if (CheckPos[r][c] === Icons.checkpoint) {
-                        checkpoint.x = TS*c;
-                        checkpoint.y = TS*r;
+
+                        // Add 1/2 tile size to account for radius center
+                        checkpoint.x = TS*c + TS/2;
+                        checkpoint.y = TS*r + TS/2;
                     }
                 }
             }
@@ -482,15 +484,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Assign walls
 
-            // Static, black and white walls
-            var staticWallData = LevelData.walls.static.layout;
+            // Static
+
+            // Black and white
+            var monoData = LevelData.wallLayout.static.mono;
 
             // Loop through columns and rows
-            for (var r=0; r<staticWallData.length; r++) {
-                for (var c=0; c<staticWallData[r].length; c++) {
+            for (var r=0; r<monoData.length; r++) {
+                for (var c=0; c<monoData[r].length; c++) {
 
                     // Check for matching icons (any icon in the 'gradient' property of 'Icon' obj)
-                    var icon = staticWallData[r][c]
+                    var icon = monoData[r][c]
                     for (var i=0; i<Icons.gradient.length; i++) {
 
                         // Calculate color value based on index of icon in array
@@ -507,38 +511,266 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Dynamic/shiftable walls
-            var dynWallData = LevelData.walls.dynamic;
+            // Red
+            var redData = LevelData.wallLayout.static.red;
 
-            for (var r=0; r<dynWallData.layout.length; r++) {
-                for (var c=0; c<dynWallData.layout[r].length; c++) {
+            for (var r=0; r<redData.length; r++) {
+                for (var c=0; c<redData[r].length; c++) {
+                    var icon = redData[r][c]
+                    for (var i=0; i<Icons.gradient.length; i++) {
+                        var clrValue = 0;
+                        if (Icons.gradient[i] === icon) {
+                            clrValue = (TS / (canWidth/255)) * i;
+                            walls.push(new Wall(TS*c, TS*r, TS, TS,  
+                                'rgba('+clrValue+',0,0,1)'));
+                        }
+                    }
+                }
+            }
+
+            // Green
+            var GreenData = LevelData.wallLayout.static.green;
+
+            for (var r=0; r<GreenData.length; r++) {
+                for (var c=0; c<GreenData[r].length; c++) {
+                    var icon = GreenData[r][c]
+                    for (var i=0; i<Icons.gradient.length; i++) {
+                        var clrValue = 0;
+                        if (Icons.gradient[i] === icon) {
+                            clrValue = (TS / (canWidth/255)) * i;
+                            walls.push(new Wall(TS*c, TS*r, TS, TS,  
+                                'rgba(0,'+clrValue+',0,1)'));
+                        }
+                    }
+                }
+            }
+
+            // Blue
+            var BlueData = LevelData.wallLayout.static.blue;
+
+            for (var r=0; r<BlueData.length; r++) {
+                for (var c=0; c<BlueData[r].length; c++) {
+                    var icon = BlueData[r][c]
+                    for (var i=0; i<Icons.gradient.length; i++) {
+                        var clrValue = 0;
+                        if (Icons.gradient[i] === icon) {
+                            clrValue = (TS / (canWidth/255)) * i;
+                            walls.push(new Wall(TS*c, TS*r, TS, TS,  
+                                'rgba(0,0,'+clrValue+',1)'));
+                        }
+                    }
+                }
+            }
+
+            // Alpha
+            var AlphaData = LevelData.wallLayout.static.alpha;
+
+            for (var r=0; r<AlphaData.length; r++) {
+                for (var c=0; c<AlphaData[r].length; c++) {
+                    var icon = AlphaData[r][c]
+                    for (var i=0; i<Icons.gradient.length; i++) {
+                        var clrValue = 0;
+                        if (Icons.gradient[i] === icon) {
+                            
+                            // Divide canWidth by 1 NOT 255!
+                            clrValue = (TS / (canWidth/1)) * i;
+                            walls.push(new Wall(TS*c, TS*r, TS, TS,  
+                                'rgba(0,0,0,'+clrValue+')'));
+                        }
+                    }
+                }
+            }
+
+            // Dynamic/shiftable
+
+            // Black and white
+            var dynMonoData = LevelData.wallLayout.dynamic.mono;
+
+            for (var r=0; r<dynMonoData.length; r++) {
+                for (var c=0; c<dynMonoData[r].length; c++) {
 
                     // Check for matching icons (any icon in the 'dynamic' property of 'Icon' obj)
-                    var icon = dynWallData.layout[r][c];
+                    var icon = dynMonoData[r][c];
                     switch(icon) {
                         case Icons.dynamic.x:
                             walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
-                                false,'x', dynWallData.XHue, false));
+                                false,'x', 'all', false));
                             break;
                         case Icons.dynamic.reverseX:
                             walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
-                            false,'x', dynWallData.XHue, true));
+                            false,'x', 'all'.XHue, true));
                             break;
                         case Icons.dynamic.y:
                             walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
-                            false,'y', dynWallData.YHue, false));
+                            false,'y', 'all'.YHue, false));
                             break;
                         case Icons.dynamic.reverseY:
                             walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
-                            false,'y', dynWallData.YHue, true));
+                            false,'y', 'all'.YHue, true));
                             break;
                         case Icons.dynamic.xy:
                             walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
-                                false,'xy', dynWallData.XYHue, false));
+                                false,'xy', 'all'.XYHue, false));
                             break;
                         case Icons.dynamic.reverseXY:
                             walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
-                            false,'xy', dynWallData.XYHue, true));
+                            false,'xy', 'all'.XYHue, true));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            // Red
+            var dynRedData = LevelData.wallLayout.dynamic.red;
+
+            for (var r=0; r<dynRedData.length; r++) {
+                for (var c=0; c<dynRedData[r].length; c++) {
+
+                    // Check for matching icons (any icon in the 'dynamic' property of 'Icon' obj)
+                    var icon = dynRedData[r][c];
+                    switch(icon) {
+                        case Icons.dynamic.x:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                                false,'x', 'r', false));
+                            break;
+                        case Icons.dynamic.reverseX:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'x', 'r', true));
+                            break;
+                        case Icons.dynamic.y:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'y', 'r', false));
+                            break;
+                        case Icons.dynamic.reverseY:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'y', 'r', true));
+                            break;
+                        case Icons.dynamic.xy:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                                false,'xy', 'r', false));
+                            break;
+                        case Icons.dynamic.reverseXY:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'xy', 'r', true));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            // Green
+            var dynGreenData = LevelData.wallLayout.dynamic.green;
+
+            for (var r=0; r<dynGreenData.length; r++) {
+                for (var c=0; c<dynGreenData[r].length; c++) {
+
+                    // Check for matching icons (any icon in the 'dynamic' property of 'Icon' obj)
+                    var icon = dynGreenData[r][c];
+                    switch(icon) {
+                        case Icons.dynamic.x:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                                false,'x', 'g', false));
+                            break;
+                        case Icons.dynamic.reverseX:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'x', 'g', true));
+                            break;
+                        case Icons.dynamic.y:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'y', 'g', false));
+                            break;
+                        case Icons.dynamic.reverseY:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'y', 'g', true));
+                            break;
+                        case Icons.dynamic.xy:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                                false,'xy', 'g', false));
+                            break;
+                        case Icons.dynamic.reverseXY:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'xy', 'g', true));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            // Blue
+            var dynBlueData = LevelData.wallLayout.dynamic.blue;
+
+            for (var r=0; r<dynBlueData.length; r++) {
+                for (var c=0; c<dynBlueData[r].length; c++) {
+
+                    // Check for matching icons (any icon in the 'dynamic' property of 'Icon' obj)
+                    var icon = dynBlueData[r][c];
+                    switch(icon) {
+                        case Icons.dynamic.x:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                                false,'x', 'b', false));
+                            break;
+                        case Icons.dynamic.reverseX:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'x', 'b', true));
+                            break;
+                        case Icons.dynamic.y:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'y', 'b', false));
+                            break;
+                        case Icons.dynamic.reverseY:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'y', 'b', true));
+                            break;
+                        case Icons.dynamic.xy:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                                false,'xy', 'b', false));
+                            break;
+                        case Icons.dynamic.reverseXY:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'xy', 'b', true));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+
+            // Alpha
+            var dynAlphaData = LevelData.wallLayout.dynamic.alpha;
+
+            for (var r=0; r<dynAlphaData.length; r++) {
+                for (var c=0; c<dynAlphaData[r].length; c++) {
+
+                    // Check for matching icons (any icon in the 'dynamic' property of 'Icon' obj)
+                    var icon = dynAlphaData[r][c];
+                    switch(icon) {
+                        case Icons.dynamic.x:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                                false,'x', 'a', false));
+                            break;
+                        case Icons.dynamic.reverseX:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'x', 'a', true));
+                            break;
+                        case Icons.dynamic.y:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'y', 'a', false));
+                            break;
+                        case Icons.dynamic.reverseY:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'y', 'a', true));
+                            break;
+                        case Icons.dynamic.xy:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                                false,'xy', 'a', false));
+                            break;
+                        case Icons.dynamic.reverseXY:
+                            walls.push(new Wall(TS*c, TS*r, TS, TS, 'rgba(0,0,0,1)',
+                            false,'xy', 'a', true));
                             break;
                         default:
                             break;
@@ -572,6 +804,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Draw walls
         for(var i=0; i<walls.length; i++) {
             if(!walls[i].static) {
+                if(walls[i].shiftAxis==='x' && walls[i].shiftHue==='a') {
+                }
                 Shifter.posToClr(player, walls[i], walls[i].shiftAxis, 
                     walls[i].shiftHue, walls[i].shiftReveresed);
             }

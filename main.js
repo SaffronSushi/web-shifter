@@ -24,6 +24,9 @@
      subtract the result of the above formula from 255:
 
         value = 255 - (255*(position x / arena width))
+    
+    Gettings Alpha (0 - 1) value
+        (1/255) * (position x / arena width)
 */
 
 document.addEventListener('DOMContentLoaded', function() {
