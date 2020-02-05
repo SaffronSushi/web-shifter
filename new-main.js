@@ -1,4 +1,5 @@
 // Only allow arrow movement when canvas is in focus
+// Smoother level transitions?
 // Encorperate w/a/s/d as well as arrow keys
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -64,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // MUST prefix with 'level-data/' and end with '.json' when processing
     const levels = [
         'test-level', 'level-1', 'level-2', 'level-3', 'level-4',
-        'level-5', 'level-6'
+        'level-5', 'level-6', 'level-7'
     ]
     var levelNum = 0;
 
@@ -169,14 +170,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Check for collision with target
         this.update = function() {
-            if (this.active && this.x < target.x + target.width &&
+            ctx.beginPath();
+            ctx.strokeStyle = '#000';
+            ctx.strokeRect(this.x - this.radius, this.y + this.radius, this.radius*2, this.radius*2);
+
+            if (this.active && 
+                this.x - this.radius < target.x + target.width &&
                 this.x + this.radius > target.x &&
-                this.y < target.y + target.height &&
-                this.y + this.radius > target.y) {
+                this.y + this.radius < target.y + target.height &&
+                this.y + this.radius > target.y - target.height) {
 
                 // Change level
                 levelNum++;
                 changeLevel(levelNum);
+
+                // Change color
+                this.color = 'rgba(240,240,255,1)';
 
                 // Set active to false so level transition only happens once
                 this.active = false;
@@ -425,8 +434,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // assignes properties and settings based on JSON file,
     // and restarts mainLoop()
     function parseLevel(filename) {
-        // Reset objects to defaults
-        initObjs();
 
         // Create new XHR request
         var request = new XMLHttpRequest();
@@ -436,6 +443,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Assign request repsonse 
         request.onload = function() {
+            // Reset objects to defaults
+            initObjs();
+
             var LevelData = request.response;
 
             // Get new tile size
@@ -468,6 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ShiftSettings.BG.target = BGData.target;
             ShiftSettings.BG.shiftHue = BGData.shiftHue;
             ShiftSettings.BG.shiftAxis = BGData.shiftAxis;
+            ShiftSettings.BG.reversed = BGData.reversed;
 
             // Player data
             var PlayData = LevelData.player;
@@ -807,6 +818,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Draw background
         if(BG) {
+            //console.log(Settings.BG.reversed);
             // Apply color shift effect if specified in ShiftSettings
             if(!Settings.BG.static) {
                 // wrap first arg in eval() to convert from string in settings
@@ -847,7 +859,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize game
     // Start main loop at 10 second interval
-    levelNum = 0;
+    levelNum = 7;
     changeLevel(levelNum);
     setInterval(mainLoop, 10);
 });
