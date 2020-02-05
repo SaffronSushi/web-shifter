@@ -63,7 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // File names for levels to be loaded
     // MUST prefix with 'level-data/' and end with '.json' when processing
     const levels = [
-        'test-level', 'level-1'
+        'test-level', 'level-1', 'level-2', 'level-3', 'level-4',
+        'level-5', 'level-6'
     ]
     var levelNum = 0;
 
@@ -176,8 +177,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Change level
                 levelNum++;
                 changeLevel(levelNum);
-
-                console.log('a');
 
                 // Set active to false so level transition only happens once
                 this.active = false;
@@ -416,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
         player = new Player(TS, TS, TS*0.94, TS*0.94, 3.5, 'rgba(240,0,0,1)');
         
         // Default checkpoint
-        checkpoint = new Checkpoint(99, 99, TS/2, 'rgba(80,80,255,1)', player);
+        checkpoint = new Checkpoint(999, 999, TS/2, 'rgba(80,80,255,1)', player);
 
         // Empty walls
         walls = [];
@@ -790,9 +789,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-
-            // Start main loop at 10 second interval
-            setInterval(mainLoop, 10);
         }
         request.send();
     }
@@ -850,5 +846,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize game
-    changeLevel(0);
+    // Start main loop at 10 second interval
+    levelNum = 0;
+    changeLevel(levelNum);
+    setInterval(mainLoop, 10);
 });

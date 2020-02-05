@@ -8,8 +8,8 @@
         
         "static": true,
         "target": "player",
-        "shiftHue": null,
-        "shiftAxis": null,
+        "shiftHue": "r",
+        "shiftAxis": "x",
         "reversed": false,
         
         "position":
