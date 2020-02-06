@@ -1,6 +1,8 @@
 // Only allow arrow movement when canvas is in focus
-// Smoother level transitions?
-// Encorperate w/a/s/d as well as arrow keys
+
+// Remove static/dynamic arrays from JSON files
+// keep only 1 array for each color wall
+// keep both dynamic and static symbols on same arrays
 
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -65,9 +67,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // MUST prefix with 'level-data/' and end with '.json' when processing
     const levels = [
         'test-level', 'level-1', 'level-2', 'level-3', 'level-4',
-        'level-5', 'level-6', 'level-7'
+        'level-5', 'level-6', 'level-7', 'level-8' 
     ]
     var levelNum = 0;
+
+    // Add control settings
 
     // Add event flags
     var leftPressed = false;
@@ -170,15 +174,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Check for collision with target
         this.update = function() {
-            ctx.beginPath();
-            ctx.strokeStyle = '#000';
-            ctx.strokeRect(this.x - this.radius, this.y + this.radius, this.radius*2, this.radius*2);
-
             if (this.active && 
-                this.x - this.radius < target.x + target.width &&
-                this.x + this.radius > target.x &&
-                this.y + this.radius < target.y + target.height &&
-                this.y + this.radius > target.y - target.height) {
+                this.x < target.x + target.width && this.x > target.x &&
+                this.y < target.y + target.height && this.y > target.y) {
 
                 // Change level
                 levelNum++;
@@ -421,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Make sure player size is slightly smaller than tile size!!
         // This is in order to fit between gaps
         // 3.5 is fastest w/out skipping over gaps w/ current size+speed
-        player = new Player(TS, TS, TS*0.94, TS*0.94, 3.5, 'rgba(240,0,0,1)');
+        player = new Player(TS, TS, TS*0.94, TS*0.94, 2, 'rgba(240,0,0,1)');
         
         // Default checkpoint
         checkpoint = new Checkpoint(999, 999, TS/2, 'rgba(80,80,255,1)', player);
@@ -807,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Gets filename from list of levels, and calls parser function
     // also starting the game loop
     function changeLevel(levelIndex) {
-        parseLevel('new-level-data/' + levels[levelIndex] + '.json');
+        parseLevel('level-data/' + levels[levelIndex] + '.json');
     }
 
     // Define main game loop to update and draw game elements
@@ -859,7 +857,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize game
     // Start main loop at 10 second interval
-    levelNum = 7;
+    levelNum = 0;
     changeLevel(levelNum);
-    setInterval(mainLoop, 10);
+    setInterval(mainLoop, 5);
 });
