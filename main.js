@@ -67,7 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // MUST prefix with 'level-data/' and end with '.json' when processing
     const levels = [
         'test-level', 'level-1', 'level-2', 'level-3', 'level-4',
-        'level-5', 'level-6', 'level-7', 'level-8' 
+        'level-5', 'level-6', 'level-7', 'level-8', 'level-9', 'level-10',
+        'level-11', 'level-12', 'level-13', 'end-level'
     ]
     var levelNum = 0;
 
@@ -490,6 +491,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ShiftSettings.player.target = PlayData.target;
             ShiftSettings.player.shiftHue = PlayData.shiftHue;
             ShiftSettings.player.shiftAxis = PlayData.shiftAxis;
+            ShiftSettings.player.reversed = PlayData.reversed;
 
             // Loop through columns and rows in text array to get position
             for (var r=0; r<PlayData.position.length; r++) {
@@ -805,6 +807,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Gets filename from list of levels, and calls parser function
     // also starting the game loop
     function changeLevel(levelIndex) {
+        // If level number is higher than level list, restart count
+        if(levelIndex > levels.length-1) {
+            levelNum = 0;
+            levelIndex = levelNum;
+        }
         parseLevel('level-data/' + levels[levelIndex] + '.json');
     }
 
@@ -856,8 +863,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Initialize game
-    // Start main loop at 10 second interval
-    levelNum = 0;
+    // Start main loop at 5 second interval
+    levelNum = 14;
     changeLevel(levelNum);
     setInterval(mainLoop, 5);
 });
