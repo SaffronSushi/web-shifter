@@ -1,3 +1,5 @@
+// ADD RESET LEVEL BUTTON
+
 // Only allow arrow movement when canvas is in focus
 
 // Remove static/dynamic arrays from JSON files
@@ -864,7 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize game
     // Start main loop at 5 second interval
-    levelNum = 14;
+    levelNum = 1;
     changeLevel(levelNum);
     setInterval(mainLoop, 5);
 });
