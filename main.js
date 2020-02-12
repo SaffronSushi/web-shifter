@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // File names for levels to be loaded
     // MUST prefix with 'level-data/' and end with '.json' when processing
     const levels = [
-        'test-level', 'level-1', 'level-2', 'level-3', 'level-4',
+        'dev-level', 'level-1', 'level-2', 'level-3', 'level-4',
         'level-5', 'level-6', 'level-7', 'level-8', 'level-9', 'level-10',
         'level-11', 'level-12', 'level-13', 'end-level'
     ]
@@ -867,6 +867,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize game
     // Start main loop at 5 second interval
     levelNum = 1;
+    //parseLevel('level-data/test-level.json');
     changeLevel(levelNum);
     setInterval(mainLoop, 5);
 });
