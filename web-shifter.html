@@ -10,17 +10,30 @@
         <script src='main.js' defer></script>
     </head>
     <body>
-        <header>
-            <h1>SHIFTER</h1>
-            <h2>
-                Use arrow keys to move
-                <br>Press R to restart level
-            </h2>
-            <!--hyperlink only works when used with saffronsushi.com-->
-            <a href='../shifter-bio'>Back to bio</a>
-        </header>
         <canvas width='512' height='512'>
             <p>Failed to load canvas.</p>
         </canvas>
+        <header>
+            <div class="description">
+                <h1>SHIFTER</h1>
+                <h2>Use arrow keys or buttons to move</h2>
+            </div>
+
+            <div class="control-panel">
+                <button id="restart-button">Restart level (R)</button>
+
+                <table>
+                    <tr>
+                        <td></td>
+                        <td><button id="up-button">&uarr;</button></td>
+                    </tr>
+                    <tr>
+                        <td><button id="left-button">&larr;</button></td>
+                        <td><button id="down-button">&darr;</button></td>
+                        <td><button id="right-button">&rarr;</button></td>
+                    </tr>
+                </table>
+            </div>
+        </header>
     </body>
 </html>

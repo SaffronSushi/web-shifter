@@ -1,6 +1,7 @@
 * {
     margin: 0;
     padding: 0;
+    border: 1px solid black;
 }
 html {
     font-size: 10px;
@@ -8,35 +9,71 @@ html {
 }
 
 body {
-    color: #300;
+    color: #666;
     overflow: hidden;
-}
-
-header {
-    position: absolute;
-    left: 30px;
-}
-
-a {
-    font-size: 2rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
 }
 
 h1 {
     font-size: 6rem;
-    color: rgba(0,0,0,0.5);
 }
 
 
 h2 {
     font-size: 2rem;
-    color: rgba(0,0,0,0.5);
+}
+
+button:active {
+    background-color: #000;
+    color: #fff;
+}
+
+header {
+    margin: 0 auto;
+    flex: 0 0 300px;
+}
+
+.control-panel table{
+    background: red;
+    margin: 10px auto;
+}
+
+.control-panel button {
+    font-size: 30px;
+    font-weight: 900;
+    width: 70px;
+    height: 70px;
+}
+
+#restart-button {
+    font-weight: 800;
+    font-size: 10px;
+    width: 100px;
+    height: 50px;
+    margin: 10px auto 20px auto;
+    padding: 0 5px;
 }
 
 canvas {
     width: 512px;
     height: 512px;
     display: block;
-    margin: 0 auto;
+    margin: 10px auto;
     margin-top: 20px;
     background: rgba(0,0,0,0.2);
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+    canvas {
+        width: 100vw;
+        height: 100vw;
+    }
+    .description {
+        display: none;
+    }
 }
