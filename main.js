@@ -1,17 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize canvas
-    const canvas = document.querySelector('canvas');
-    const ctx = canvas.getContext('2d');
+    var canvas = document.querySelector('canvas');
+    var ctx = canvas.getContext('2d');
     var canWidth = canvas.width;
     var canHeight = canvas.height;
     var canDiag = (canWidth + canHeight) / 2; // Diagonal length of canvas
-
-    const upBtn = document.querySelector('#up-button');
-    const downBtn = document.querySelector('#down-button');
-    const leftBtn = document.querySelector('#left-button');
-    const rightBtn = document.querySelector('#right-button');
-    const restartBtn = document.querySelector('#restart-button');
 
     // Add game object names as constants
     var BG = null;
@@ -83,13 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add listeners for events
     document.addEventListener('keydown', keyDownHandler, false);
     document.addEventListener('keyup', keyUpHandler, false);
-
-    upBtn.addEventListener('onmousedown', function() {
-        console.log('press');
-    });
-    upBtn.onmouseup = function() {
-        console.log('release');
-    }
 
     // Define event handlers
     function keyDownHandler(event) {
@@ -829,7 +816,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Define main game loop to update and draw game elements
     function mainLoop() {
-
         var Settings = ShiftSettings;
         // Clear canvas
         ctx.clearRect(0, 0, canWidth, canHeight);
