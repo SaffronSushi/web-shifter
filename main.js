@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
             levelNum = 0;
             levelIndex = levelNum;
         }
-        parseLevel('../level-data/' + levels[levelIndex] + '.json');
+        parseLevel('level-data/' + levels[levelIndex] + '.json');
     }
 
     // Define main game loop to update and draw game elements
