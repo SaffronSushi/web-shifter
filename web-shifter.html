@@ -1,37 +1,56 @@
 <!DOCTYPE html>
-<html lang='en-US'>
-    <head>
-        <meta charset='utf-8'>
-        <title>Shifter</title>
-        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-        <link rel='stylesheet' type='text/css' href='style.css'>
-        
-        <!-- DOMContentLoaded listner also used. 'defer' used just in case -->
-        <script src='main.js' defer></script>
-    </head>
-    <body>
-        
-        <header>
-            <div class="branding">
-                <!--link only works when used with saffronsushi.com-->
-                <a href='../shifter-bio' id="back-btn">&lt;-- Back to main site</a>
-                <h1>SHIFTER</h1>
-            </div>
+<html lang='en'>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Andrew Durkee">
+    <title>Shifter</title>
+    <link rel='stylesheet' type='text/css' href='css/style.css'>
+    <script src='js/main.js' defer></script>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <nav>
+          <h1>Shifter</h1>
+          <ul class="controls">
+            <li>W/A/S/D To Move</li>
+            <li>R To Restart</li>
+          </ul>
+        </nav>
+      </div>
+    </header>
 
-            <div class="controls">
-                <h2>Controls:</h2>
-                <ul>
-                    <li>Use arrow keys to move</li>
-                    <li>Press R to restart level</li>
-                </ul>
-            </div>
-        </header>
+    <!-- Main Content -->
+    <main>
+      <div class="container">
+        <!-- Set initial canvas dimensions -->
+        <canvas width="512" height="512">
+          <p>Failed To Load Canvas</p>
+        </canvas>
+      </div>
+    </main>
+      <!-- 
+      <header>
+          <div class="branding">
+              <a href='../shifter-bio' id="back-btn">&lt;-- Back to main site</a>
+              <h1>SHIFTER</h1>
+          </div>
 
-        <section class="main">
-            <canvas width='512' height='512'>
-                <p>Failed to load canvas.</p>
-            </canvas>
-        </section>
+          <div class="controls">
+              <h2>Controls:</h2>
+              <ul>
+                  <li>Use arrow keys to move</li>
+                  <li>Press R to restart level</li>
+              </ul>
+          </div>
+      </header>
 
-    </body>
+      <section class="main">
+          <canvas width='512' height='512'>
+              <p>Failed to load canvas.</p>
+          </canvas>
+      </section> 
+  -->
+  </body>
 </html>

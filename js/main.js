@@ -81,16 +81,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Define event handlers
     function keyDownHandler(event) {
         switch(event.key) {
-            case 'ArrowRight' || 'right':
+            case 'd':
                 rightPressed = true;
                 break;
-            case 'ArrowLeft' || 'left':
+            case 'a':
                 leftPressed = true;
                 break;
-            case 'ArrowDown' || 'down':
+            case 's':
                 downPressed = true;
                 break;
-            case 'ArrowUp' || 'up':
+            case 'w':
                 upPressed = true;
                 break;
             default:
@@ -100,16 +100,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function keyUpHandler(event) {
         switch(event.key) {
-            case 'ArrowRight' || 'right':
+            case 'd':
                 rightPressed = false;
                 break;
-            case 'ArrowLeft' || 'left':
+            case 'a':
                 leftPressed = false;
                 break;
-            case 'ArrowDown' || 'down':
+            case 's':
                 downPressed = false;
                 break;
-            case 'ArrowUp' || 'up':
+            case 'w':
                 upPressed = false;
                 break;
                             
@@ -811,7 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
             levelNum = 0;
             levelIndex = levelNum;
         }
-        parseLevel('level-data/' + levels[levelIndex] + '.json');
+        parseLevel('../level-data/' + levels[levelIndex] + '.json');
     }
 
     // Define main game loop to update and draw game elements
